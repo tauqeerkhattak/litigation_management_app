@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +23,11 @@ abstract class BaseViewModel<S> extends Notifier<S> {
   Future<T?> runSafely<T>(AsyncValueGetter<T> action) async {
     try {
       return await action.call();
+    } on FirebaseAuthException catch (e, s) {
+      final message = _handleAuthException(e);
+      log(message, stackTrace: s);
+      handleError(message);
+      return null;
     } on AppException catch (e, s) {
       log(e.toString(), stackTrace: s);
       handleError(e.message);
@@ -31,6 +36,21 @@ abstract class BaseViewModel<S> extends Notifier<S> {
       log(e.toString(), stackTrace: s);
       handleError(e.toString());
       return null;
+    }
+  }
+
+  String _handleAuthException(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'No user found for that email.';
+      case 'wrong-password':
+        return 'Wrong password provided.';
+      case 'invalid-email':
+        return 'The email address is badly formatted.';
+      case 'user-disabled':
+        return 'This user has been disabled.';
+      default:
+        return e.message ?? 'Authentication failed.';
     }
   }
 

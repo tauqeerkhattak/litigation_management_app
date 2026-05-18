@@ -1,9 +1,9 @@
-class User {
+class UserData {
   final String id;
   final String name;
   final String role;
   final String email;
-  User({
+  const UserData({
     required this.id,
     required this.name,
     required this.role,
@@ -11,16 +11,11 @@ class User {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'role': role,
-      'email': email,
-    };
+    return {'id': id, 'name': name, 'role': role, 'email': email};
   }
 
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
+  factory UserData.fromMap(Map<String, dynamic> map) {
+    return UserData(
       id: map['id'],
       name: map['name'],
       role: map['role'],

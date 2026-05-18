@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74427736097",
+    "project_id": "litigation-app-5f964",
+    "storage_bucket": "litigation-app-5f964.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74427736097:android:2aea3f2354b03affe74360",
+        "android_client_info": {
+          "package_name": "dev.tauqeer.litigation_management_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjt3mcit-WFS5iHHn4Yivii11MJJtivFg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

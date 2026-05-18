@@ -1,16 +1,20 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:litigation_management_app/views/themes/light_theme.dart';
 
+import 'firebase_options.dart';
+import 'services/locator.dart';
 import 'utils/constants.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'views/home_screen.dart';
 import 'views/login_screen.dart';
-import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().init();
+  await initializeDependencies();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await locator<NotificationService>().init();
   runApp(const ProviderScope(child: LitigationApp()));
 }
 
@@ -25,16 +29,8 @@ class LitigationApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       title: 'DC Sukkur Litigation',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.navy,
-          primary: AppColors.navy,
-          secondary: AppColors.gold,
-        ),
-        textTheme: GoogleFonts.sourceSerif4TextTheme(),
-        scaffoldBackgroundColor: AppColors.cream,
-      ),
+      theme: lightTheme,
+      darkTheme: lightTheme,
       home: const MainGate(),
     );
   }

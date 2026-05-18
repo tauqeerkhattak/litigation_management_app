@@ -1,25 +1,23 @@
 import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:uuid/uuid.dart';
+
 import '../models/app_document.dart';
 import '../models/case_model.dart';
-import '../models/hearing.dart';
+import '../services/locator.dart';
 import '../utils/constants.dart';
 import '../viewmodels/case_viewmodel.dart';
-import '../providers/file_provider.dart';
 import 'widgets/hearing_form_dialog.dart';
 
 class CaseDetailView extends ConsumerStatefulWidget {
   final String caseId;
 
-  const CaseDetailView({
-    super.key,
-    required this.caseId,
-  });
+  const CaseDetailView({super.key, required this.caseId});
 
   @override
   ConsumerState<CaseDetailView> createState() => _CaseDetailViewState();
@@ -38,7 +36,10 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   @override
   Widget build(BuildContext context) {
     final cases = ref.watch(caseProvider);
-    final c = cases.firstWhere((element) => element.id == widget.caseId, orElse: () => cases.first);
+    final c = cases.firstWhere(
+      (element) => element.id == widget.caseId,
+      orElse: () => cases.first,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -241,8 +242,16 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                       ],
                     ),
                     const Divider(height: 20),
-                    _buildHearingDetail("Submitted", h.submitted, AppColors.gold),
-                    _buildHearingDetail("Proceedings", h.happened, AppColors.navy),
+                    _buildHearingDetail(
+                      "Submitted",
+                      h.submitted,
+                      AppColors.gold,
+                    ),
+                    _buildHearingDetail(
+                      "Proceedings",
+                      h.happened,
+                      AppColors.navy,
+                    ),
                     _buildHearingDetail(
                       "Court Order",
                       h.order,
@@ -345,8 +354,12 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                     style: const TextStyle(fontSize: 11),
                   ),
                   trailing: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.download, size: 18, color: AppColors.gold),
+                    onPressed: () => _viewDocument(d),
+                    icon: const Icon(
+                      Icons.visibility,
+                      size: 18,
+                      color: AppColors.gold,
+                    ),
                   ),
                 ),
               );
@@ -355,6 +368,23 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
         ),
       ],
     );
+  }
+
+  Future<void> _viewDocument(AppDocument doc) async {
+    if (doc.fileName != null) {
+      // final result = await OpenFile.open(doc.fileName);
+      // if (result.type != ResultType.done) {
+      //   if (mounted) {
+      //     ScaffoldMessenger.of(context).showSnackBar(
+      //       SnackBar(content: Text("Could not open file: ${result.message}")),
+      //     );
+      //   }
+      // }
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("File path not found.")));
+    }
   }
 
   void _showAddHearingDialog() {
@@ -374,8 +404,10 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     if (result != null) {
       PlatformFile file = result.files.first;
       if (file.path != null) {
-        final savedPath = await ref.read(fileServiceProvider).saveFile(File(file.path!));
-        
+        final savedPath = await locator<FileService>().saveFile(
+          File(file.path!),
+        );
+
         final newDoc = AppDocument(
           id: const Uuid().v4(),
           type: DOC_TYPES[0],

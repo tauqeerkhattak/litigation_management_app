@@ -1,8 +1,7 @@
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
+part of 'locator.dart';
 
 class FileService {
+  FileService._();
   Future<String> saveFile(File file) async {
     final appDir = await getApplicationDocumentsDirectory();
     final fileName = p.basename(file.path);

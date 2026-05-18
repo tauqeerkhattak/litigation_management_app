@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_document.dart';
 import '../models/case_model.dart';
 import '../models/hearing.dart';
-import '../providers/storage_provider.dart';
-import '../services/notification_service.dart';
+import '../services/locator.dart';
 import 'base_view_model.dart';
 
 class CaseViewModel extends BaseViewModel<List<Case>> {
@@ -17,7 +16,7 @@ class CaseViewModel extends BaseViewModel<List<Case>> {
   }
 
   Future<void> _loadCases() async {
-    final storage = ref.read(storageProvider);
+    final storage = locator<StorageService>();
     final loadedCases = await storage.loadCases();
     if (loadedCases.isEmpty) {
       state = _initialCases;
@@ -83,7 +82,7 @@ class CaseViewModel extends BaseViewModel<List<Case>> {
   ];
 
   Future<void> _save() async {
-    await ref.read(storageProvider).saveCases(state);
+    await locator<StorageService>().saveCases(state);
   }
 
   void addCase(Case newCase) {
@@ -114,7 +113,7 @@ class CaseViewModel extends BaseViewModel<List<Case>> {
 
     if (hearing.nextDate != null) {
       final c = state.firstWhere((e) => e.id == caseId);
-      NotificationService().scheduleHearingReminder(
+      locator<NotificationService>().scheduleHearingReminder(
         c.id.hashCode,
         c.caseNo,
         hearing.nextDate!,

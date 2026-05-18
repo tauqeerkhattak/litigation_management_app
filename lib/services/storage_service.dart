@@ -1,13 +1,11 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/case_model.dart';
-import '../models/user_model.dart';
+part of 'locator.dart';
 
 class StorageService {
+  StorageService._();
   static const String _userKey = 'user_session';
   static const String _casesKey = 'cases_data';
 
-  Future<void> saveUser(User? user) async {
+  Future<void> saveUser(UserData? user) async {
     final prefs = await SharedPreferences.getInstance();
     if (user == null) {
       await prefs.remove(_userKey);
@@ -16,12 +14,12 @@ class StorageService {
     }
   }
 
-  Future<User?> loadUser() async {
+  Future<UserData?> loadUser() async {
     final prefs = await SharedPreferences.getInstance();
     final userStr = prefs.getString(_userKey);
     if (userStr == null) return null;
     try {
-      return User.fromMap(jsonDecode(userStr));
+      return UserData.fromMap(jsonDecode(userStr));
     } catch (e) {
       return null;
     }

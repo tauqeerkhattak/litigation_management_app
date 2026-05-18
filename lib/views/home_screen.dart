@@ -6,6 +6,7 @@ import '../models/case_model.dart';
 import '../utils/constants.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/case_viewmodel.dart';
+import 'calendar_view.dart';
 import 'case_detail_view.dart';
 import 'widgets/case_form_dialog.dart';
 
@@ -133,7 +134,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ListTile(
             leading: const Icon(Icons.calendar_today),
             title: const Text("Hearing Calendar"),
-            onTap: () {},
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CalendarView()),
+              );
+            },
           ),
           const Divider(),
           ListTile(
@@ -184,7 +191,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _selectedStatus = status;
                       });
                     },
-                    selectedColor: AppColors.gold.withOpacity(0.3),
+                    selectedColor: AppColors.gold.withValues(alpha: 0.3),
                     backgroundColor: AppColors.cream,
                   ),
                 );
@@ -209,7 +216,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
