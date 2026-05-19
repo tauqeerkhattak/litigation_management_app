@@ -4,11 +4,13 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../models/case_model.dart';
 import '../utils/constants.dart';
+import '../utils/date_utils.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/case_viewmodel.dart';
+import 'add_case_screen.dart';
 import 'calendar_view.dart';
 import 'case_detail_view.dart';
-import 'widgets/case_form_dialog.dart';
+import 'search_view.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -26,8 +28,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final authState = ref.watch(authProvider);
     final user = authState.user;
 
-    // Create local providers or use a simpler way to filter for now
-    final allCases = ref.watch(caseProvider);
+    final caseState = ref.watch(caseProvider);
+    final allCases = caseState.cases;
+    final isLoading = caseState.isLoading;
     final query = _searchController.text.toLowerCase();
 
     final cases = allCases.where((c) {
@@ -49,17 +52,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           style: GoogleFonts.playfairDisplay(
             fontWeight: FontWeight.bold,
             fontSize: 18,
-            color: AppColors.navy,
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchView()),
+              );
+            },
+          ),
           Stack(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.notifications_none,
-                  color: AppColors.navy,
-                ),
+                icon: const Icon(Icons.notifications_none),
                 onPressed: () {},
               ),
               if (urgentCount > 0)
@@ -69,7 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: AppColors.red,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     constraints: const BoxConstraints(
@@ -87,24 +95,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSearchAndFilters(),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: cases.length,
-              itemBuilder: (context, index) {
-                return _buildCaseCard(cases[index]);
-              },
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.gold),
+            )
+          : Column(
+              children: [
+                _buildSearchAndFilters(),
+                Expanded(
+                  child: cases.isEmpty
+                      ? const Center(child: Text("No cases found"))
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: cases.length,
+                          itemBuilder: (context, index) {
+                            return _buildCaseCard(cases[index]);
+                          },
+                        ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddCaseDialog,
-        backgroundColor: AppColors.navy,
-        child: const Icon(Icons.add, color: AppColors.gold),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddCaseScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -160,8 +178,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         children: [
           TextField(
-            controller: _searchController,
-            onChanged: (v) => setState(() {}),
+            readOnly: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchView()),
+              );
+            },
             decoration: InputDecoration(
               hintText: "Search cases, parties...",
               prefixIcon: const Icon(Icons.search),
@@ -191,8 +214,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _selectedStatus = status;
                       });
                     },
-                    selectedColor: AppColors.gold.withValues(alpha: 0.3),
-                    backgroundColor: AppColors.cream,
                   ),
                 );
               }).toList(),
@@ -204,24 +225,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCaseCard(Case c) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => CaseDetailView(caseId: c.id)),
-      ),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: InkWell(
+        onTap: () {
+          if (c.id == null) {
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => CaseDetailView(caseId: c.id!)),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -286,11 +302,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         color: AppColors.muted,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        c.court,
-                        style: const TextStyle(color: AppColors.muted),
+                      Expanded(
+                        child: Text(
+                          c.court,
+                          style: const TextStyle(color: AppColors.muted),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      const Spacer(),
                       const Icon(
                         Icons.calendar_month,
                         size: 14,
@@ -299,7 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(width: 4),
                       Text(
                         c.nextHearing != null
-                            ? "Next: ${c.nextHearing!.day}/${c.nextHearing!.month}"
+                            ? "Next: ${c.nextHearing!.monthDay}"
                             : "No date",
                         style: const TextStyle(color: AppColors.muted),
                       ),
@@ -310,18 +328,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showAddCaseDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => CaseFormDialog(
-        onSave: (newCase) {
-          ref.read(caseProvider.notifier).addCase(newCase);
-          Navigator.pop(ctx);
-        },
       ),
     );
   }

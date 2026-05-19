@@ -81,9 +81,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     validator: Validators.email,
                     decoration: InputDecoration(
                       hintText: "Email",
+                      hintStyle: const TextStyle(color: Colors.white60),
+                      fillColor: Colors.white.withValues(alpha: 0.1),
                       prefixIcon: const Icon(
                         Icons.email,
                         color: AppColors.gold,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.gold,
+                          width: 1,
+                        ),
                       ),
                     ),
                   ),
@@ -95,7 +108,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: "Password",
+                      hintStyle: const TextStyle(color: Colors.white60),
+                      fillColor: Colors.white.withValues(alpha: 0.1),
                       prefixIcon: const Icon(Icons.lock, color: AppColors.gold),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.gold,
+                          width: 1,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),

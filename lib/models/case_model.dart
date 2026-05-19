@@ -2,7 +2,8 @@ import 'app_document.dart';
 import 'hearing.dart';
 
 class Case {
-  final String id;
+  final String? id;
+  final String? userId;
   final String caseNo;
   final int year;
   final String court;
@@ -16,11 +17,12 @@ class Case {
   final String notes;
   final String nature;
   final String? department;
-  final List<Hearing> hearings;
+  final String? taluka;
   final List<AppDocument> documents;
 
   Case({
-    required this.id,
+    this.id,
+    this.userId,
     required this.caseNo,
     required this.year,
     required this.court,
@@ -34,12 +36,13 @@ class Case {
     required this.notes,
     required this.nature,
     this.department,
-    required this.hearings,
+    this.taluka,
     required this.documents,
   });
 
   Case copyWith({
     String? id,
+    String? userId,
     String? caseNo,
     int? year,
     String? court,
@@ -53,11 +56,12 @@ class Case {
     String? notes,
     String? nature,
     String? department,
-    List<Hearing>? hearings,
+    String? taluka,
     List<AppDocument>? documents,
   }) {
     return Case(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       caseNo: caseNo ?? this.caseNo,
       year: year ?? this.year,
       court: court ?? this.court,
@@ -71,14 +75,15 @@ class Case {
       notes: notes ?? this.notes,
       nature: nature ?? this.nature,
       department: department ?? this.department,
-      hearings: hearings ?? this.hearings,
+      taluka: taluka ?? this.taluka,
       documents: documents ?? this.documents,
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
+      if (userId != null) 'userId': userId,
       'caseNo': caseNo,
       'year': year,
       'court': court,
@@ -92,29 +97,38 @@ class Case {
       'notes': notes,
       'nature': nature,
       'department': department,
-      'hearings': hearings.map((x) => x.toMap()).toList(),
+      'taluka': taluka,
       'documents': documents.map((x) => x.toMap()).toList(),
     };
   }
 
-  factory Case.fromMap(Map<String, dynamic> map) {
+  factory Case.fromMap(Map<String, dynamic> map, {String? docId}) {
     return Case(
-      id: map['id'],
-      caseNo: map['caseNo'],
-      year: map['year'],
-      court: map['court'],
-      bench: map['bench'],
-      title: map['title'],
-      parties: map['parties'],
-      firstHearing: map['firstHearing'] != null ? DateTime.parse(map['firstHearing']) : null,
-      lastHearing: map['lastHearing'] != null ? DateTime.parse(map['lastHearing']) : null,
-      nextHearing: map['nextHearing'] != null ? DateTime.parse(map['nextHearing']) : null,
-      status: map['status'],
-      notes: map['notes'],
-      nature: map['nature'],
+      id: docId ?? map['id'],
+      userId: map['userId'],
+      caseNo: map['caseNo'] ?? '',
+      year: map['year'] ?? DateTime.now().year,
+      court: map['court'] ?? '',
+      bench: map['bench'] ?? '',
+      title: map['title'] ?? '',
+      parties: map['parties'] ?? '',
+      firstHearing: map['firstHearing'] != null
+          ? DateTime.parse(map['firstHearing'])
+          : null,
+      lastHearing: map['lastHearing'] != null
+          ? DateTime.parse(map['lastHearing'])
+          : null,
+      nextHearing: map['nextHearing'] != null
+          ? DateTime.parse(map['nextHearing'])
+          : null,
+      status: map['status'] ?? 'Active',
+      notes: map['notes'] ?? '',
+      nature: map['nature'] ?? '',
       department: map['department'],
-      hearings: List<Hearing>.from(map['hearings']?.map((x) => Hearing.fromMap(x))),
-      documents: List<AppDocument>.from(map['documents']?.map((x) => AppDocument.fromMap(x))),
+      taluka: map['taluka'],
+      documents: List<AppDocument>.from(
+        map['documents']?.map((x) => AppDocument.fromMap(x)) ?? [],
+      ),
     );
   }
 }

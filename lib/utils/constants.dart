@@ -16,7 +16,7 @@ class AppColors {
   static const Color border = Color(0xFFD4C9B0);
 }
 
-const List<String> COURTS = [
+const List<String> courtsList = [
   "High Court",
   "Civil Court",
   "Sessions Court",
@@ -27,9 +27,13 @@ const List<String> COURTS = [
   "Other",
 ];
 
-const List<String> BENCHES = ["Single Bench", "Division Bench", "Full Bench"];
+const List<String> benchesList = [
+  "Single Bench",
+  "Division Bench",
+  "Full Bench",
+];
 
-const List<String> DOC_TYPES = [
+const List<String> docTypesList = [
   "Plaint",
   "Written Statement",
   "Parawise Comments",
@@ -42,15 +46,33 @@ const List<String> DOC_TYPES = [
   "Other",
 ];
 
-const List<String> CASE_NATURES = [
-  "Revenue (Sukkur City)",
-  "Revenue (New Sukkur)",
-  "Revenue (Rohri)",
-  "Revenue (Pano Aqil)",
-  "Revenue (Saleh Pat)",
+const List<String> caseNaturesList = [
+  "Revenue",
   "General Recruitment",
   "Disabled Quota",
   "General Administration",
+  "Service Matter",
   "Contempt Case",
+  "Other",
+];
+
+const List<String> talukasList = [
+  "Sukkur City",
+  "New Sukkur",
+  "Rohri",
+  "Pano Aqil",
+  "Saleh Pat",
+];
+
+const List<String> departmentsList = [
+  "Education & Literacy",
+  "Health",
+  "Irrigation",
+  "Agriculture",
+  "Revenue",
+  "Police / Home",
+  "Local Government",
+  "Works & Services",
+  "Social Welfare",
   "Other",
 ];

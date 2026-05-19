@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
@@ -11,9 +12,11 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/case_model.dart';
+import '../models/hearing.dart';
 import '../models/user_model.dart';
 
 part 'auth_service.dart';
+part 'case_service.dart';
 part 'file_service.dart';
 part 'notification_service.dart';
 part 'storage_service.dart';
@@ -24,6 +27,7 @@ Future<void> initializeDependencies() async {
   await locator.reset();
   locator
     ..registerLazySingleton(() => AuthService._())
+    ..registerLazySingleton(() => CaseService._())
     ..registerLazySingleton(() => StorageService._())
     ..registerLazySingleton(() => NotificationService._())
     ..registerLazySingleton(() => FileService._());

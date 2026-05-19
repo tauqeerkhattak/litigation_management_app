@@ -14,7 +14,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDependencies();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await locator<NotificationService>().init();
+
+  final notificationService = locator<NotificationService>();
+  await notificationService.init();
+  await notificationService.requestPermissions();
+
   runApp(const ProviderScope(child: LitigationApp()));
 }
 

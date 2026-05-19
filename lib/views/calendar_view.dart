@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
+
 import '../models/case_model.dart';
 import '../utils/constants.dart';
 import '../viewmodels/case_viewmodel.dart';
@@ -32,67 +33,71 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
 
   @override
   Widget build(BuildContext context) {
-    final allCases = ref.watch(caseProvider);
+    final caseState = ref.watch(caseProvider);
+    final allCases = caseState.cases;
+    final isLoading = caseState.isLoading;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Hearing Calendar"),
-        backgroundColor: AppColors.white,
-        foregroundColor: AppColors.navy,
-      ),
-      body: Column(
-        children: [
-          TableCalendar<Case>(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onFormatChanged: (format) {
-              if (_calendarFormat != format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              }
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-            eventLoader: (day) => _getEventsForDay(day, allCases),
-            calendarStyle: const CalendarStyle(
-              markerDecoration: BoxDecoration(
-                color: AppColors.gold,
-                shape: BoxShape.circle,
-              ),
-              todayDecoration: BoxDecoration(
-                color: AppColors.navyMid,
-                shape: BoxShape.circle,
-              ),
-              selectedDecoration: BoxDecoration(
-                color: AppColors.gold,
-                shape: BoxShape.circle,
-              ),
+      appBar: AppBar(title: const Text("Hearing Calendar")),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.gold),
+            )
+          : Column(
+              children: [
+                TableCalendar<Case>(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _focusedDay,
+                  calendarFormat: _calendarFormat,
+                  selectedDayPredicate: (day) {
+                    return isSameDay(_selectedDay, day);
+                  },
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  onFormatChanged: (format) {
+                    if (_calendarFormat != format) {
+                      setState(() {
+                        _calendarFormat = format;
+                      });
+                    }
+                  },
+                  onPageChanged: (focusedDay) {
+                    _focusedDay = focusedDay;
+                  },
+                  eventLoader: (day) => _getEventsForDay(day, allCases),
+                  calendarStyle: CalendarStyle(
+                    markerDecoration: const BoxDecoration(
+                      color: AppColors.gold,
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: AppColors.navy.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    selectedDecoration: const BoxDecoration(
+                      color: AppColors.gold,
+                      shape: BoxShape.circle,
+                    ),
+                    selectedTextStyle: const TextStyle(
+                      color: AppColors.navy,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: true,
+                    titleCentered: true,
+                    formatButtonShowsNext: false,
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(child: _buildEventList(allCases)),
+              ],
             ),
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: true,
-              titleCentered: true,
-              formatButtonShowsNext: false,
-            ),
-          ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: _buildEventList(allCases),
-          ),
-        ],
-      ),
     );
   }
 
@@ -100,9 +105,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
     final events = _getEventsForDay(_selectedDay!, allCases);
 
     if (events.isEmpty) {
-      return const Center(
-        child: Text("No hearings scheduled for this day."),
-      );
+      return const Center(child: Text("No hearings scheduled for this day."));
     }
 
     return ListView.builder(
@@ -119,15 +122,21 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
           child: ListTile(
             title: Text(
               c.caseNo,
-              style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.navy),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.navy,
+              ),
             ),
             subtitle: Text(c.title),
             trailing: const Icon(Icons.chevron_right, color: AppColors.gold),
             onTap: () {
+              if (c.id == null) {
+                return;
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CaseDetailView(caseId: c.id),
+                  builder: (_) => CaseDetailView(caseId: c.id!),
                 ),
               );
             },
