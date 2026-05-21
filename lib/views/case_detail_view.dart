@@ -400,7 +400,8 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   }
 
   Future<void> _uploadDocument(String caseId) async {
-    FilePickerResult? result = await FilePicker.pickFiles();
+    //FilePickerResult? result = await FilePicker.pickFiles(); //muneeb
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
       PlatformFile file = result.files.first;
       if (file.path != null) {

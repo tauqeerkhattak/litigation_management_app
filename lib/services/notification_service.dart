@@ -4,38 +4,37 @@ class NotificationService {
   NotificationService._();
 
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
     tz.initializeTimeZones();
+
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+    InitializationSettings(android: initializationSettingsAndroid);
 
-    await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
-    );
+    // ✅ v18 uses positional param, not named 'settings:'
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   Future<void> scheduleHearingReminder(
-    int id,
-    String title,
-    DateTime hearingDate,
-  ) async {
+      int id,
+      String title,
+      DateTime hearingDate,
+      ) async {
     final reminderDate = hearingDate.subtract(const Duration(days: 3));
 
-    // Don't schedule if the reminder date is in the past
     if (reminderDate.isBefore(DateTime.now())) return;
 
+    // ✅ v18 uses positional params, not named params
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      id: id,
-      title: 'Upcoming Hearing Reminder',
-      body:
-          'Case: $title is scheduled for ${hearingDate.day}/${hearingDate.month}',
-      scheduledDate: tz.TZDateTime.from(reminderDate, tz.local),
-      notificationDetails: const NotificationDetails(
+      id,
+      'Upcoming Hearing Reminder',
+      'Case: $title is scheduled for ${hearingDate.day}/${hearingDate.month}',
+      tz.TZDateTime.from(reminderDate, tz.local),
+      const NotificationDetails(
         android: AndroidNotificationDetails(
           'hearing_reminders',
           'Hearing Reminders',
@@ -46,7 +45,60 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,
       // uiLocalNotificationDateInterpretation:
-      //     UILocalNotificationDateInterpretation.absoluteTime,
+      // UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 }
+
+//muneeb
+
+// class NotificationService {
+//   NotificationService._();
+//
+//   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//       FlutterLocalNotificationsPlugin();
+//
+//   Future<void> init() async {
+//     tz.initializeTimeZones();
+//     const AndroidInitializationSettings initializationSettingsAndroid =
+//         AndroidInitializationSettings('@mipmap/ic_launcher');
+//
+//     const InitializationSettings initializationSettings =
+//         InitializationSettings(android: initializationSettingsAndroid);
+//
+//     await flutterLocalNotificationsPlugin.initialize(
+//       settings: initializationSettings,
+//     );
+//   }
+//
+//   Future<void> scheduleHearingReminder(
+//     int id,
+//     String title,
+//     DateTime hearingDate,
+//   ) async {
+//     final reminderDate = hearingDate.subtract(const Duration(days: 3));
+//
+//     // Don't schedule if the reminder date is in the past
+//     if (reminderDate.isBefore(DateTime.now())) return;
+//
+//     await flutterLocalNotificationsPlugin.zonedSchedule(
+//       id: id,
+//       title: 'Upcoming Hearing Reminder',
+//       body:
+//           'Case: $title is scheduled for ${hearingDate.day}/${hearingDate.month}',
+//       scheduledDate: tz.TZDateTime.from(reminderDate, tz.local),
+//       notificationDetails: const NotificationDetails(
+//         android: AndroidNotificationDetails(
+//           'hearing_reminders',
+//           'Hearing Reminders',
+//           importance: Importance.high,
+//           priority: Priority.high,
+//         ),
+//       ),
+//       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+//       matchDateTimeComponents: DateTimeComponents.dateAndTime,
+//       // uiLocalNotificationDateInterpretation:
+//       //     UILocalNotificationDateInterpretation.absoluteTime,
+//     );
+//   }
+// }
