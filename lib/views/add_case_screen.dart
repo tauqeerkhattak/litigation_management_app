@@ -85,16 +85,18 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
     _notesController.dispose();
     super.dispose();
   }
-
   void _saveCase() async {
     if (_formKey.currentState!.validate()) {
-      final plaintiffStr =
-      _plaintiffControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).join(", ");
-      final respondentStr =
-      _respondentControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).join(", ");
-      final parties = "$plaintiffStr vs $respondentStr";
-      // final parties =
-      //     "${_plaintiffController.text} vs ${_respondentController.text}";
+      final plaintiffs = _plaintiffControllers
+          .map((c) => c.text.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final respondents = _respondentControllers
+          .map((c) => c.text.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      final title =
+          "${_plaintiffControllers.first.text} vs ${_respondentControllers.first.text}";
 
       final updatedCase =
           widget.caseToEdit?.copyWith(
@@ -102,8 +104,9 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
             year: int.parse(_yearController.text),
             court: _selectedCourt,
             bench: _selectedBench,
-            title: parties,
-            parties: parties,
+            title: title,
+            plaintiffs: plaintiffs,
+            respondents: respondents,
             nature: _selectedNature,
             taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
             department: _selectedNature == "General Administration"
@@ -112,22 +115,23 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
             notes: _notesController.text,
             status: _selectedStatus,
           ) ??
-          Case(
-            caseNo: _caseNoController.text,
-            year: int.parse(_yearController.text),
-            court: _selectedCourt,
-            bench: _selectedBench,
-            title: parties,
-            parties: parties,
-            status: _selectedStatus,
-            nature: _selectedNature,
-            taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
-            department: _selectedNature == "General Administration"
-                ? _selectedDepartment
-                : null,
-            notes: _notesController.text,
-            documents: [],
-          );
+              Case(
+                caseNo: _caseNoController.text,
+                year: int.parse(_yearController.text),
+                court: _selectedCourt,
+                bench: _selectedBench,
+                title: title,
+                plaintiffs: plaintiffs,
+                respondents: respondents,
+                status: _selectedStatus,
+                nature: _selectedNature,
+                taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
+                department: _selectedNature == "General Administration"
+                    ? _selectedDepartment
+                    : null,
+                notes: _notesController.text,
+                documents: [],
+              );
 
       if (widget.caseToEdit != null) {
         ref.read(caseProvider.notifier).updateCase(updatedCase);
@@ -138,6 +142,64 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
       if (mounted) Navigator.pop(context);
     }
   }
+  // void _saveCase() async {
+  //   if (_formKey.currentState!.validate()) {
+  //     final plaintiffStr =
+  //     _plaintiffControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).join(", ");
+  //     final respondentStr =
+  //     _respondentControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).join(", ");
+  //     final parties = "$plaintiffStr vs $respondentStr";
+  //     // final parties =
+  //     //     "${_plaintiffController.text} vs ${_respondentController.text}";
+  //
+  //     final updatedCase =
+  //         widget.caseToEdit?.copyWith(
+
+  //           caseNo: _caseNoController.text,
+  //           year: int.parse(_yearController.text),
+  //           court: _selectedCourt,
+  //           bench: _selectedBench,
+  //           // title: parties,
+  //           // parties: parties,
+  //           plaintiffs: _plaintiffControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList(),
+  //           respondents: _respondentControllers.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList(),
+  //           title: "${_plaintiffControllers.first.text} vs ${_respondentControllers.first.text}",
+  //
+  //           nature: _selectedNature,
+  //           taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
+  //           department: _selectedNature == "General Administration"
+  //               ? _selectedDepartment
+  //               : null,
+  //           notes: _notesController.text,
+  //           status: _selectedStatus,
+  //         ) ??
+  //         Case(
+  //           caseNo: _caseNoController.text,
+  //           year: int.parse(_yearController.text),
+  //           court: _selectedCourt,
+  //           bench: _selectedBench,
+  //           title: title, // yhn error hai
+  //           plaintiffs: plaintiffStr,// yhn error hai error:The argument type 'String' can't be assigned to the parameter type 'List<String>'. (Documentation)
+  //           respondents: respondents, // yhn error hai
+  //           status: _selectedStatus,
+  //           nature: _selectedNature,
+  //           taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
+  //           department: _selectedNature == "General Administration"
+  //               ? _selectedDepartment
+  //               : null,
+  //           notes: _notesController.text,
+  //           documents: [],
+  //         );
+  //
+  //     if (widget.caseToEdit != null) {
+  //       ref.read(caseProvider.notifier).updateCase(updatedCase);
+  //     } else {
+  //       ref.read(caseProvider.notifier).addCase(updatedCase);
+  //     }
+  //
+  //     if (mounted) Navigator.pop(context);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
