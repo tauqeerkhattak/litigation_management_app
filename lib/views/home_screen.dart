@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:litigation_management_app/views/login_screen.dart';
 
 import '../models/case_model.dart';
 import '../utils/constants.dart';
@@ -23,8 +25,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedStatus = "All";
 
+  void _listener(AuthState? prev, AuthState next) {
+    if (next.user == null) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        CupertinoPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen(authProvider, _listener);
     final authState = ref.watch(authProvider);
     final user = authState.user;
 

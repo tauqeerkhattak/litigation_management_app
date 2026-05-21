@@ -1,7 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:litigation_management_app/utils/validators.dart';
+import 'package:litigation_management_app/views/home_screen.dart';
 
 import '../utils/constants.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -27,6 +29,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .login(_emailController.text, _passwordController.text);
   }
 
+  void _listener(AuthState? prev, AuthState next) {
+    if (next.user != null) {
+      Navigator.pushReplacement(
+        context,
+        CupertinoPageRoute(builder: (_) => HomeScreen()),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -36,6 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(authProvider, _listener);
     final authState = ref.watch(authProvider);
 
     return Scaffold(
@@ -127,7 +139,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
-                    height: 50,
                     child: ElevatedButton(
                       onPressed: authState.isLoading ? null : _onLoginTap,
                       style: ElevatedButton.styleFrom(

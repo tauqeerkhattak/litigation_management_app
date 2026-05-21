@@ -29,6 +29,7 @@ final lightTheme = ThemeData(
   cardTheme: CardThemeData(
     color: AppColors.white,
     elevation: 2,
+    clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   ),
   inputDecorationTheme: InputDecorationTheme(
@@ -71,5 +72,10 @@ final lightTheme = ThemeData(
     labelStyle: const TextStyle(color: AppColors.navy, fontSize: 12),
     secondaryLabelStyle: const TextStyle(color: AppColors.navy),
     side: BorderSide.none,
+  ),
+
+  progressIndicatorTheme: ProgressIndicatorThemeData(
+    color: AppColors.gold,
+    year2023: false,
   ),
 );
