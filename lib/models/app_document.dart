@@ -1,5 +1,5 @@
 class AppDocument {
-  final String id;
+  final String? id;
   final String type;
   final String name;
   final String? fileName;
@@ -7,7 +7,7 @@ class AppDocument {
   final String? size;
 
   AppDocument({
-    required this.id,
+    this.id,
     required this.type,
     required this.name,
     this.fileName,
@@ -34,6 +34,24 @@ class AppDocument {
       fileName: map['fileName'],
       uploadedAt: DateTime.parse(map['uploadedAt']),
       size: map['size'],
+    );
+  }
+
+  AppDocument copyWith({
+    String? id,
+    String? type,
+    String? name,
+    String? fileName,
+    DateTime? uploadedAt,
+    String? size,
+  }) {
+    return AppDocument(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      fileName: fileName ?? this.fileName,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
+      size: size ?? this.size,
     );
   }
 }

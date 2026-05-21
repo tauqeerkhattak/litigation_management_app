@@ -28,23 +28,14 @@ class AuthViewModel extends BaseViewModel<AuthState> {
   }
 
   Future<void> _loadUser() async {
-    state = state.copyWith(isLoading: true);
-    // First check local storage for session
-    var user = await locator<StorageService>().loadUser();
-
-    // If not in local storage, check Firebase current user
-    if (user == null) {
-      user = locator<AuthService>().currentUser;
-      if (user != null) {
-        await locator<StorageService>().saveUser(user);
-      }
-    }
-
+    await Future.delayed(const Duration(seconds: 2));
+    final user = locator<AuthService>().currentUser;
     state = state.copyWith(user: user, isLoading: false);
   }
 
   Future<void> login(String email, String password) async {
     return await runSafely(() async {
+      state = state.copyWith(isLoading: true);
       final user = await locator<AuthService>().signIn(email, password);
       await locator<StorageService>().saveUser(user);
       state = state.copyWith(isLoading: false, user: user);
@@ -58,6 +49,12 @@ class AuthViewModel extends BaseViewModel<AuthState> {
       await locator<StorageService>().saveUser(null);
       state = AuthState();
     });
+  }
+
+  @override
+  void handleError(String message) {
+    super.handleError(message);
+    state = state.copyWith(isLoading: false);
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/app_document.dart';
@@ -6,156 +8,167 @@ import '../models/hearing.dart';
 import '../services/locator.dart';
 import 'base_view_model.dart';
 
-class CaseViewModel extends BaseViewModel<List<Case>> {
-  CaseViewModel() : super([]);
+class CaseState {
+  final List<Case> cases;
+  final bool isLoading;
+
+  CaseState({this.cases = const [], this.isLoading = false});
+
+  CaseState copyWith({List<Case>? cases, bool? isLoading}) {
+    return CaseState(
+      cases: cases ?? this.cases,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
+}
+
+class CaseViewModel extends BaseViewModel<CaseState> {
+  CaseViewModel() : super(CaseState());
+  StreamSubscription? _casesSubscription;
 
   @override
   void init() {
     super.init();
-    _loadCases();
+    _listenToCases();
   }
 
-  Future<void> _loadCases() async {
-    final storage = locator<StorageService>();
-    final loadedCases = await storage.loadCases();
-    if (loadedCases.isEmpty) {
-      state = _initialCases;
-      await storage.saveCases(state);
-    } else {
-      state = loadedCases;
-    }
+  void _listenToCases() {
+    state = state.copyWith(isLoading: true);
+    _casesSubscription?.cancel();
+    _casesSubscription = locator<CaseService>().streamCases().listen(
+      (cases) {
+        state = state.copyWith(cases: cases, isLoading: false);
+      },
+      onError: (error) {
+        state = state.copyWith(isLoading: false);
+        // Handle error appropriately
+      },
+    );
   }
 
-  static final List<Case> _initialCases = [
-    Case(
-      id: "c1",
-      caseNo: "W.P. 2341",
-      year: 2024,
-      court: "High Court",
-      bench: "Single Bench",
-      title: "Ghulam Hussain vs Deputy Commissioner Sukkur",
-      parties: "Ghulam Hussain (Petitioner) / DC Sukkur (Respondent)",
-      firstHearing: DateTime(2024, 3, 10),
-      lastHearing: DateTime(2025, 4, 22),
-      nextHearing: DateTime(2025, 5, 19),
-      status: "Active",
-      nature: "General Recruitment",
-      notes:
-          "Service matter. Employee claims wrongful termination. Parawise comments already submitted.",
-      hearings: [
-        Hearing(
-          id: "h1",
-          date: DateTime(2025, 4, 22),
-          submitted: "Compliance report",
-          happened: "Court examined parawise comments",
-          order: "Case adjourned to 19-May-2025",
-          nextDate: DateTime(2025, 5, 19),
-        ),
-      ],
-      documents: [
-        AppDocument(
-          id: "d1",
-          type: "Parawise Comments",
-          name: "PC dated 15-Mar-2024",
-          uploadedAt: DateTime(2024, 3, 15),
-          size: "245 KB",
-        ),
-      ],
-    ),
-    Case(
-      id: "c2",
-      caseNo: "C.A. 112",
-      year: 2023,
-      court: "Civil Court",
-      bench: "Single Bench",
-      title: "Muhammad Rafiq vs Revenue Department",
-      parties: "Muhammad Rafiq (Plaintiff) / Revenue Dept (Defendant)",
-      firstHearing: DateTime(2023, 7, 15),
-      lastHearing: DateTime(2025, 3, 1),
-      nextHearing: DateTime.now().add(const Duration(days: 2)),
-      status: "Stay Granted",
-      nature: "Revenue (Rohri)",
-      notes: "Land dispute. Stay order in effect. Written statement submitted.",
-      hearings: [],
-      documents: [],
-    ),
-  ];
-
-  Future<void> _save() async {
-    await locator<StorageService>().saveCases(state);
+  @override
+  void dispose() {
+    _casesSubscription?.cancel();
+    super.dispose();
   }
 
-  void addCase(Case newCase) {
-    state = [...state, newCase];
-    _save();
+  Future<void> addCase(Case newCase) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      await locator<CaseService>().saveCase(newCase);
+    });
+    state = state.copyWith(isLoading: false);
   }
 
-  void updateCase(Case updatedCase) {
-    state = [
-      for (final c in state)
-        if (c.id == updatedCase.id) updatedCase else c,
-    ];
-    _save();
+  Future<void> updateCase(Case updatedCase) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      await locator<CaseService>().saveCase(updatedCase);
+    });
+    state = state.copyWith(isLoading: false);
   }
 
-  void addHearing(String caseId, Hearing hearing) {
-    state = [
-      for (final c in state)
-        if (c.id == caseId)
-          c.copyWith(
-            hearings: [...c.hearings, hearing],
-            lastHearing: hearing.date,
-            nextHearing: hearing.nextDate ?? c.nextHearing,
-          )
-        else
-          c,
-    ];
+  Future<void> deleteCase(String caseId) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      await locator<CaseService>().deleteCase(caseId);
+    });
+    state = state.copyWith(isLoading: false);
+  }
 
-    if (hearing.nextDate != null) {
-      final c = state.firstWhere((e) => e.id == caseId);
-      locator<NotificationService>().scheduleHearingReminder(
-        c.id.hashCode,
-        c.caseNo,
-        hearing.nextDate!,
+  Future<void> addHearing(String caseId, Hearing hearing) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      await locator<CaseService>().addHearing(caseId, hearing);
+
+      // We might still want to schedule notifications here
+      if (hearing.nextDate != null) {
+        final currentCase = state.cases.firstWhere((c) => c.id == caseId);
+        locator<NotificationService>().scheduleHearingReminder(
+          caseId.hashCode,
+          currentCase.caseNo,
+          hearing.nextDate!,
+        );
+      }
+    });
+    state = state.copyWith(isLoading: false);
+  }
+
+  // Document management still uses the Case document's list for now
+  // unless the user wants documents global too.
+  // Given the request "same for hearing as well", I'll stick to
+  // moving hearings but keeping documents in Case for now unless asked.
+  // Actually, let's keep it consistent.
+
+  void addDocument(String caseId, AppDocument doc) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      final currentCase = state.cases.firstWhere((c) => c.id == caseId);
+      final updatedCase = currentCase.copyWith(
+        documents: [...currentCase.documents, doc],
       );
-    }
-
-    _save();
+      await locator<CaseService>().saveCase(updatedCase);
+    });
+    state = state.copyWith(isLoading: false);
   }
 
-  void addDocument(String caseId, AppDocument doc) {
-    state = [
-      for (final c in state)
-        if (c.id == caseId) c.copyWith(documents: [...c.documents, doc]) else c,
-    ];
-    _save();
+  Future<void> deleteDocument(String caseId, String? docId) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      final currentCase = state.cases.firstWhere((c) => c.id == caseId);
+      final updatedDocs = currentCase.documents
+          .where((d) => d.id != docId)
+          .toList();
+
+      final docToDelete = currentCase.documents.firstWhere(
+        (d) => d.id == docId,
+      );
+      if (docToDelete.fileName != null) {
+        await locator<FileService>().deleteFile(docToDelete.fileName!);
+      }
+
+      final updatedCase = currentCase.copyWith(documents: updatedDocs);
+      await locator<CaseService>().saveCase(updatedCase);
+    });
+    state = state.copyWith(isLoading: false);
+  }
+
+  Future<void> renameDocument(
+    String caseId,
+    String? docId,
+    String newName,
+  ) async {
+    state = state.copyWith(isLoading: true);
+    await runSafely(() async {
+      final currentCase = state.cases.firstWhere((c) => c.id == caseId);
+      final updatedDocs = currentCase.documents.map((doc) {
+        if (doc.id == docId) {
+          return doc.copyWith(name: newName);
+        }
+        return doc;
+      }).toList();
+
+      final updatedCase = currentCase.copyWith(documents: updatedDocs);
+      await locator<CaseService>().saveCase(updatedCase);
+    });
+    state = state.copyWith(isLoading: false);
   }
 }
 
-final caseProvider = NotifierProvider<CaseViewModel, List<Case>>(() {
+final caseProvider = NotifierProvider<CaseViewModel, CaseState>(() {
   return CaseViewModel();
 });
 
-final searchQueryProvider = Provider.autoDispose<String>((ref) => "");
-final filterStatusProvider = Provider.autoDispose<String>((ref) => "All");
-
-final filteredCasesProvider = Provider<List<Case>>((ref) {
-  final cases = ref.watch(caseProvider);
-  final query = ref.watch(searchQueryProvider).toLowerCase();
-  final filterStatus = ref.watch(filterStatusProvider);
-
-  return cases.where((c) {
-    final matchesQuery =
-        c.caseNo.toLowerCase().contains(query) ||
-        c.title.toLowerCase().contains(query);
-    final matchesStatus = filterStatus == "All" || c.status == filterStatus;
-    return matchesQuery && matchesStatus;
-  }).toList();
+final hearingsProvider = StreamProvider.family<List<Hearing>, String>((
+  ref,
+  caseId,
+) {
+  return locator<CaseService>().streamHearings(caseId);
 });
 
 final urgentCasesCountProvider = Provider<int>((ref) {
-  final cases = ref.watch(caseProvider);
-  return cases.where((c) {
+  final caseState = ref.watch(caseProvider);
+  return caseState.cases.where((c) {
     if (c.nextHearing == null) return false;
     final diff = c.nextHearing!.difference(DateTime.now()).inDays;
     return diff >= 0 && diff <= 3;
