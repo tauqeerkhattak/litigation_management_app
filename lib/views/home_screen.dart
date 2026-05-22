@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:litigation_management_app/views/login_screen.dart';
 
 import '../models/case_model.dart';
+import '../models/user_model.dart';
 import '../utils/constants.dart';
 import '../utils/date_utils.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -140,19 +141,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildDrawer(user) {
+  Widget _buildDrawer(UserData? user) {
+    final name = (user?.name.isEmpty ?? true) ? "Guest" : user!.name;
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(color: AppColors.navy),
-            accountName: Text(user?.name ?? "Guest"),
+            accountName: Text(name),
             accountEmail: Text(user?.email ?? ""),
             currentAccountPicture: CircleAvatar(
               backgroundColor: AppColors.gold,
               child: Text(
-                user?.name.substring(0, 1) ?? "G",
+                name.substring(0, 1),
                 style: const TextStyle(fontSize: 24, color: AppColors.navy),
               ),
             ),

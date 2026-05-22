@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:litigation_management_app/utils/validators.dart';
 
 import '../models/case_model.dart';
 import '../utils/constants.dart';
@@ -17,13 +18,15 @@ class AddCaseScreen extends ConsumerStatefulWidget {
 class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController _caseNoController;
-  late TextEditingController _yearController;
-  // late TextEditingController _plaintiffController;
-  // late TextEditingController _respondentController;
-  late List<TextEditingController> _plaintiffControllers;
-  late List<TextEditingController> _respondentControllers;
-  late TextEditingController _notesController;
+  final TextEditingController _caseNoController = TextEditingController();
+  final TextEditingController _yearController = TextEditingController();
+  final List<TextEditingController> _plaintiffControllers = [
+    TextEditingController(),
+  ];
+  final List<TextEditingController> _respondentControllers = [
+    TextEditingController(),
+  ];
+  final TextEditingController _notesController = TextEditingController();
 
   String _selectedCourt = courtsList[0];
   String _selectedBench = benchesList[0];
@@ -36,55 +39,42 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
   void initState() {
     super.initState();
     final c = widget.caseToEdit;
-    _caseNoController = TextEditingController(text: c?.caseNo ?? "");
-    _yearController = TextEditingController(
-      text: (c?.year ?? DateTime.now().year).toString(),
-    );
-
-// Purana code hata kar ye lagayein:
-    List<String> plaintiffs = [""];
-    List<String> respondents = [""];
-
-    if (c != null && c.parties.contains(" vs ")) {
-      final parts = c.parties.split(" vs ");
-      plaintiffs = parts[0].split(", ").where((s) => s.isNotEmpty).toList();
-      respondents = parts.length > 1
-          ? parts[1].split(", ").where((s) => s.isNotEmpty).toList()
-          : [""];
-      if (plaintiffs.isEmpty) plaintiffs = [""];
-      if (respondents.isEmpty) respondents = [""];
-    } else if (c != null) {
-      plaintiffs = [c.parties];
+    if (c == null) {
+      return;
     }
-
-    _plaintiffControllers =
-        plaintiffs.map((p) => TextEditingController(text: p)).toList();
-    _respondentControllers =
-        respondents.map((r) => TextEditingController(text: r)).toList();
-
-    _notesController = TextEditingController(text: c?.notes ?? "");
-
-    if (c != null) {
-      _selectedCourt = c.court;
-      _selectedBench = c.bench;
-      _selectedNature = c.nature;
-      _selectedTaluka = c.taluka;
-      _selectedDepartment = c.department;
-      _selectedStatus = c.status;
+    _plaintiffControllers.clear();
+    _respondentControllers.clear();
+    _caseNoController.text = c.caseNo;
+    _yearController.text = (c.year).toString();
+    for (final plaintiff in c.plaintiffs) {
+      _plaintiffControllers.add(TextEditingController(text: plaintiff));
     }
+    for (final respondent in c.respondents) {
+      _respondentControllers.add(TextEditingController(text: respondent));
+    }
+    _notesController.text = c.notes;
+    _selectedCourt = c.court;
+    _selectedBench = c.bench;
+    _selectedNature = c.nature;
+    _selectedTaluka = c.taluka;
+    _selectedDepartment = c.department;
+    _selectedStatus = c.status;
   }
 
   @override
   void dispose() {
     _caseNoController.dispose();
     _yearController.dispose();
-    // _plaintiffController.dispose();
-    // _respondentController.dispose();
-    for (final c in _plaintiffControllers) c.dispose();
-    for (final c in _respondentControllers) c.dispose();
+    for (final c in _plaintiffControllers) {
+      c.dispose();
+    }
+    for (final c in _respondentControllers) {
+      c.dispose();
+    }
     _notesController.dispose();
     super.dispose();
   }
+
   void _saveCase() async {
     if (_formKey.currentState!.validate()) {
       final plaintiffs = _plaintiffControllers
@@ -115,23 +105,23 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
             notes: _notesController.text,
             status: _selectedStatus,
           ) ??
-              Case(
-                caseNo: _caseNoController.text,
-                year: int.parse(_yearController.text),
-                court: _selectedCourt,
-                bench: _selectedBench,
-                title: title,
-                plaintiffs: plaintiffs,
-                respondents: respondents,
-                status: _selectedStatus,
-                nature: _selectedNature,
-                taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
-                department: _selectedNature == "General Administration"
-                    ? _selectedDepartment
-                    : null,
-                notes: _notesController.text,
-                documents: [],
-              );
+          Case(
+            caseNo: _caseNoController.text,
+            year: int.parse(_yearController.text),
+            court: _selectedCourt,
+            bench: _selectedBench,
+            title: title,
+            plaintiffs: plaintiffs,
+            respondents: respondents,
+            status: _selectedStatus,
+            nature: _selectedNature,
+            taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
+            department: _selectedNature == "General Administration"
+                ? _selectedDepartment
+                : null,
+            notes: _notesController.text,
+            documents: [],
+          );
 
       if (widget.caseToEdit != null) {
         ref.read(caseProvider.notifier).updateCase(updatedCase);
@@ -249,7 +239,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    value: _selectedCourt,
+                    initialValue: _selectedCourt,
                     items: courtsList
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
@@ -259,10 +249,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle("Parties Details"),
 
-// --- PLAINTIFFS ---
-                  ..._plaintiffControllers.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final ctrl = entry.value;
+                  ..._plaintiffControllers.indexed.map((data) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
@@ -270,24 +257,22 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              controller: ctrl,
+                              controller: data.$2,
                               decoration: InputDecoration(
-                                labelText: i == 0
+                                labelText: data.$1 == 0
                                     ? "Plaintiff / Petitioner"
-                                    : "Plaintiff ${i + 1}",
+                                    : "Plaintiff ${data.$1 + 1}",
                                 hintText: "Enter name",
                               ),
-                              validator: i == 0
-                                  ? (v) => v!.isEmpty ? "Required" : null
-                                  : null,
+                              validator: Validators.notEmpty,
                             ),
                           ),
                           if (_plaintiffControllers.length > 1) ...[
                             const SizedBox(width: 8),
                             IconButton(
                               onPressed: () => setState(() {
-                                _plaintiffControllers[i].dispose();
-                                _plaintiffControllers.removeAt(i);
+                                data.$2.dispose();
+                                _plaintiffControllers.removeAt(data.$1);
                               }),
                               icon: const Icon(Icons.close, size: 18),
                               color: Colors.redAccent,
@@ -303,8 +288,9 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     );
                   }),
                   TextButton.icon(
-                    onPressed: () => setState(() =>
-                        _plaintiffControllers.add(TextEditingController())),
+                    onPressed: () => setState(
+                      () => _plaintiffControllers.add(TextEditingController()),
+                    ),
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text("Add Plaintiff"),
                     style: TextButton.styleFrom(
@@ -324,7 +310,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   ),
                   const SizedBox(height: 8),
 
-// --- RESPONDENTS ---
+                  // --- RESPONDENTS ---
                   ..._respondentControllers.asMap().entries.map((entry) {
                     final i = entry.key;
                     final ctrl = entry.value;
@@ -368,8 +354,9 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     );
                   }),
                   TextButton.icon(
-                    onPressed: () => setState(() =>
-                        _respondentControllers.add(TextEditingController())),
+                    onPressed: () => setState(
+                      () => _respondentControllers.add(TextEditingController()),
+                    ),
                     icon: const Icon(Icons.add, size: 18),
                     label: const Text("Add Respondent"),
                     style: TextButton.styleFrom(
@@ -377,39 +364,9 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // _buildSectionTitle("Parties Details"),
-                  // TextFormField(
-                  //   controller: _plaintiffController,
-                  //   decoration: const InputDecoration(
-                  //     labelText: "Plaintiff / Petitioner",
-                  //     hintText: "Enter name of person filing the case",
-                  //   ),
-                  //   validator: (v) => v!.isEmpty ? "Required" : null,
-                  // ),
-                  // const SizedBox(height: 12),
-                  // const Center(
-                  //   child: Text(
-                  //     "VS",
-                  //     style: TextStyle(
-                  //       fontWeight: FontWeight.bold,
-                  //       color: AppColors.gold,
-                  //     ),
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 12),
-                  // TextFormField(
-                  //   controller: _respondentController,
-                  //   decoration: const InputDecoration(
-                  //     labelText: "Respondent / Defendant",
-                  //     hintText: "Enter name of the opposing party",
-                  //   ),
-                  //   validator: (v) => v!.isEmpty ? "Required" : null,
-                  // ),
-                  // const SizedBox(height: 24),
-
                   _buildSectionTitle("Case Nature & Category"),
                   DropdownButtonFormField<String>(
-                    value: _selectedNature,
+                    initialValue: _selectedNature,
                     items: caseNaturesList
                         .map((n) => DropdownMenuItem(value: n, child: Text(n)))
                         .toList(),
@@ -428,7 +385,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   if (_selectedNature == "Revenue") ...[
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedTaluka,
+                      initialValue: _selectedTaluka,
                       hint: const Text("Select Taluka"),
                       items: talukasList
                           .map(
@@ -445,7 +402,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   if (_selectedNature == "General Administration") ...[
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedDepartment,
+                      initialValue: _selectedDepartment,
                       hint: const Text("Select Department"),
                       items: departmentsList
                           .map(
@@ -464,7 +421,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle("Additional Information"),
                   DropdownButtonFormField<String>(
-                    value: _selectedStatus,
+                    initialValue: _selectedStatus,
                     items: ["Active", "Stay Granted", "Decided", "Dismissed"]
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                         .toList(),
