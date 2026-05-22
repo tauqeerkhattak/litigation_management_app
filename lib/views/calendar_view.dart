@@ -127,7 +127,7 @@ class _CalendarViewState extends ConsumerState<CalendarView> {
                 color: AppColors.navy,
               ),
             ),
-            subtitle: Text(c.title),
+            subtitle: Text("${c.title} • ${c.court.displayName}"),
             trailing: const Icon(Icons.chevron_right, color: AppColors.gold),
             onTap: () {
               if (c.id == null) {

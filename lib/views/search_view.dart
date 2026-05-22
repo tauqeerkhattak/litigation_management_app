@@ -15,9 +15,9 @@ class SearchView extends ConsumerStatefulWidget {
 
 class _SearchViewState extends ConsumerState<SearchView> {
   String _searchQuery = "";
-  String _selectedStatus = "All";
-  String _selectedCourt = "All";
-  String _selectedNature = "All";
+  CaseStatus? _selectedStatus;
+  Court? _selectedCourt;
+  CaseNature? _selectedNature;
 
   @override
   Widget build(BuildContext context) {
@@ -34,10 +34,10 @@ class _SearchViewState extends ConsumerState<SearchView> {
           c.parties.toLowerCase().contains(query);
 
       final matchesStatus =
-          _selectedStatus == "All" || c.status == _selectedStatus;
-      final matchesCourt = _selectedCourt == "All" || c.court == _selectedCourt;
+          _selectedStatus == null || c.status == _selectedStatus;
+      final matchesCourt = _selectedCourt == null || c.court == _selectedCourt;
       final matchesNature =
-          _selectedNature == "All" || c.nature == _selectedNature;
+          _selectedNature == null || c.nature == _selectedNature;
 
       return matchesQuery && matchesStatus && matchesCourt && matchesNature;
     }).toList();
@@ -102,18 +102,30 @@ class _SearchViewState extends ConsumerState<SearchView> {
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: ["All", "Active", "Stay Granted", "Decided"].map((s) {
-                  return Padding(
+                children: [
+                  Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
-                      label: Text(s),
-                      selected: _selectedStatus == s,
+                      label: const Text("All"),
+                      selected: _selectedStatus == null,
                       onSelected: (selected) {
-                        if (selected) setState(() => _selectedStatus = s);
+                        if (selected) setState(() => _selectedStatus = null);
                       },
                     ),
-                  );
-                }).toList(),
+                  ),
+                  ...CaseStatus.values.map((s) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(s.displayName),
+                        selected: _selectedStatus == s,
+                        onSelected: (selected) {
+                          if (selected) setState(() => _selectedStatus = s);
+                        },
+                      ),
+                    );
+                  }),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -122,13 +134,18 @@ class _SearchViewState extends ConsumerState<SearchView> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<Court?>(
               value: _selectedCourt,
               items: [
-                "All",
-                ...courtsList,
-              ].map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-              onChanged: (v) => setState(() => _selectedCourt = v!),
+                const DropdownMenuItem<Court?>(
+                  value: null,
+                  child: Text("All Courts"),
+                ),
+                ...Court.values.map(
+                  (c) => DropdownMenuItem(value: c, child: Text(c.displayName)),
+                ),
+              ],
+              onChanged: (v) => setState(() => _selectedCourt = v),
               decoration: const InputDecoration(isDense: true),
             ),
             const SizedBox(height: 16),
@@ -137,13 +154,18 @@ class _SearchViewState extends ConsumerState<SearchView> {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField<CaseNature?>(
               value: _selectedNature,
               items: [
-                "All",
-                ...caseNaturesList,
-              ].map((n) => DropdownMenuItem(value: n, child: Text(n))).toList(),
-              onChanged: (v) => setState(() => _selectedNature = v!),
+                const DropdownMenuItem<CaseNature?>(
+                  value: null,
+                  child: Text("All Natures"),
+                ),
+                ...CaseNature.values.map(
+                  (n) => DropdownMenuItem(value: n, child: Text(n.displayName)),
+                ),
+              ],
+              onChanged: (v) => setState(() => _selectedNature = v),
               decoration: const InputDecoration(isDense: true),
             ),
           ],
@@ -189,14 +211,14 @@ class _SearchViewState extends ConsumerState<SearchView> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    c.status,
+                    c.status.displayName,
                     style: const TextStyle(color: AppColors.gold, fontSize: 10),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    c.court,
+                    c.court.displayName,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.muted,

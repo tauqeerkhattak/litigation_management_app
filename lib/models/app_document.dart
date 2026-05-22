@@ -1,6 +1,8 @@
+import '../utils/constants.dart';
+
 class AppDocument {
   final String? id;
-  final String type;
+  final DocumentType type;
   final String name;
   final String? fileName;
   final DateTime uploadedAt;
@@ -18,7 +20,7 @@ class AppDocument {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'type': type,
+      'type': type.name,
       'name': name,
       'fileName': fileName,
       'uploadedAt': uploadedAt.toIso8601String(),
@@ -29,7 +31,7 @@ class AppDocument {
   factory AppDocument.fromMap(Map<String, dynamic> map) {
     return AppDocument(
       id: map['id'],
-      type: map['type'],
+      type: DocumentType.values.byName(map['type'] ?? 'other'),
       name: map['name'],
       fileName: map['fileName'],
       uploadedAt: DateTime.parse(map['uploadedAt']),
@@ -39,7 +41,7 @@ class AppDocument {
 
   AppDocument copyWith({
     String? id,
-    String? type,
+    DocumentType? type,
     String? name,
     String? fileName,
     DateTime? uploadedAt,

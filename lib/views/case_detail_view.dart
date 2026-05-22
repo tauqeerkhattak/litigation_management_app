@@ -70,7 +70,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
               ),
             ),
             Text(
-              "${c.caseNo} / ${c.year} - ${c.court}",
+              "${c.caseNo} / ${c.year} - ${c.court.displayName}",
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontSize: 10,
                 color: AppColors.muted,
@@ -116,20 +116,20 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   Widget _buildOverviewTab(Case c) {
     final List<List<String>> infoItems = [
       ["Parties", c.parties],
-      ["Court", c.court],
-      ["Bench", c.bench],
-      ["Nature", c.nature],
+      ["Court", c.court.displayName],
+      ["Bench", c.bench.displayName],
+      ["Nature", c.nature.displayName],
     ];
 
-    if (c.taluka != null && c.taluka!.isNotEmpty) {
-      infoItems.add(["Taluka", c.taluka!]);
+    if (c.taluka != null) {
+      infoItems.add(["Taluka", c.taluka!.displayName]);
     }
-    if (c.department != null && c.department!.isNotEmpty) {
-      infoItems.add(["Department", c.department!]);
+    if (c.department != null) {
+      infoItems.add(["Department", c.department!.displayName]);
     }
 
     infoItems.addAll([
-      ["Status", c.status],
+      ["Status", c.status.displayName],
       [
         "Next Hearing",
         c.nextHearing != null
@@ -406,7 +406,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                     ),
                   ),
                   subtitle: Text(
-                    "${d.type} • ${DateFormat('dd-MMM-yyyy').format(d.uploadedAt)}",
+                    "${d.type.displayName} • ${DateFormat('dd-MMM-yyyy').format(d.uploadedAt)}",
                     style: const TextStyle(fontSize: 11),
                   ),
                   trailing: Row(
@@ -505,7 +505,6 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     );
   }
 
-
   void _showDeleteConfirmDialog(String caseId, AppDocument doc) {
     showDialog(
       context: context,
@@ -552,7 +551,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
         );
 
         final newDoc = AppDocument(
-          type: docTypesList[0],
+          type: DocumentType.other,
           name: file.name,
           fileName: savedPath,
           uploadedAt: DateTime.now(),
@@ -570,11 +569,11 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
 
     String message =
         "Litigation Management - DC Office Sukkur\n\n"
-        "Court: ${c.court}\n"
+        "Court: ${c.court.displayName}\n"
         "Case: ${c.caseNo} / ${c.year}\n"
         "Parties: ${c.title}\n"
-        "Taluka: ${c.taluka ?? 'N/A'}\n"
-        "Dept: ${c.department ?? 'N/A'}\n"
+        "Taluka: ${c.taluka?.displayName ?? 'N/A'}\n"
+        "Dept: ${c.department?.displayName ?? 'N/A'}\n"
         "Next Hearing: $nextDate\n\n"
         "Notes: ${c.notes}";
 
@@ -584,7 +583,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   void _shareHearingToWhatsApp(Case c, Hearing h) async {
     String message =
         "Hearing Update - DC Office Sukkur\n\n"
-        "Court: ${c.court}\n"
+        "Court: ${c.court.displayName}\n"
         "Case: ${c.caseNo} / ${c.year}\n"
         "Hearing Date: ${DateFormat('dd-MMM-yyyy').format(h.date)}\n\n"
         "Proceedings:\n${h.happened.isEmpty ? 'N/A' : h.happened}\n\n"

@@ -24,7 +24,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String _selectedStatus = "All";
+  CaseStatus? _selectedStatus;
 
   void _listener(AuthState? prev, AuthState next) {
     if (next.user == null) {
@@ -52,7 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           c.caseNo.toLowerCase().contains(query) ||
           c.title.toLowerCase().contains(query);
       final matchesStatus =
-          _selectedStatus == "All" || c.status == _selectedStatus;
+          _selectedStatus == null || c.status == _selectedStatus;
       return matchesQuery && matchesStatus;
     }).toList();
 
@@ -215,23 +215,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ["All", "Active", "Stay Granted", "Decided"].map((
-                status,
-              ) {
-                final isSelected = _selectedStatus == status;
-                return Padding(
+              children: [
+                Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: FilterChip(
-                    label: Text(status),
-                    selected: isSelected,
+                    label: const Text("All"),
+                    selected: _selectedStatus == null,
                     onSelected: (val) {
                       setState(() {
-                        _selectedStatus = status;
+                        _selectedStatus = null;
                       });
                     },
                   ),
-                );
-              }).toList(),
+                ),
+                ...CaseStatus.values.map((status) {
+                  final isSelected = _selectedStatus == status;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FilterChip(
+                      label: Text(status.displayName),
+                      selected: isSelected,
+                      onSelected: (val) {
+                        setState(() {
+                          _selectedStatus = status;
+                        });
+                      },
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
         ],
@@ -285,7 +297,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      c.status.toUpperCase(),
+                      c.status.displayName.toUpperCase(),
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -319,7 +331,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          c.court,
+                          c.court.displayName,
                           style: const TextStyle(color: AppColors.muted),
                           overflow: TextOverflow.ellipsis,
                         ),

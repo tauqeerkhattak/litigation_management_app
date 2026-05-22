@@ -28,12 +28,12 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
   ];
   final TextEditingController _notesController = TextEditingController();
 
-  String _selectedCourt = courtsList[0];
-  String _selectedBench = benchesList[0];
-  String _selectedNature = caseNaturesList[0];
-  String? _selectedTaluka;
-  String? _selectedDepartment;
-  String _selectedStatus = "Active";
+  Court _selectedCourt = Court.highCourt;
+  Bench _selectedBench = Bench.singleBench;
+  CaseNature _selectedNature = CaseNature.revenue;
+  Taluka? _selectedTaluka;
+  Department? _selectedDepartment;
+  CaseStatus _selectedStatus = CaseStatus.active;
 
   @override
   void initState() {
@@ -98,8 +98,10 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
             plaintiffs: plaintiffs,
             respondents: respondents,
             nature: _selectedNature,
-            taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
-            department: _selectedNature == "General Administration"
+            taluka: _selectedNature == CaseNature.revenue
+                ? _selectedTaluka
+                : null,
+            department: _selectedNature == CaseNature.generalAdministration
                 ? _selectedDepartment
                 : null,
             notes: _notesController.text,
@@ -115,8 +117,10 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
             respondents: respondents,
             status: _selectedStatus,
             nature: _selectedNature,
-            taluka: _selectedNature == "Revenue" ? _selectedTaluka : null,
-            department: _selectedNature == "General Administration"
+            taluka: _selectedNature == CaseNature.revenue
+                ? _selectedTaluka
+                : null,
+            department: _selectedNature == CaseNature.generalAdministration
                 ? _selectedDepartment
                 : null,
             notes: _notesController.text,
@@ -238,13 +242,32 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
+                  DropdownButtonFormField<Court>(
                     initialValue: _selectedCourt,
-                    items: courtsList
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    items: Court.values
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c,
+                            child: Text(c.displayName),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _selectedCourt = v!),
                     decoration: const InputDecoration(labelText: "Court Name"),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<Bench>(
+                    initialValue: _selectedBench,
+                    items: Bench.values
+                        .map(
+                          (b) => DropdownMenuItem(
+                            value: b,
+                            child: Text(b.displayName),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => _selectedBench = v!),
+                    decoration: const InputDecoration(labelText: "Bench"),
                   ),
                   const SizedBox(height: 24),
                   _buildSectionTitle("Parties Details"),
@@ -365,10 +388,15 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   ),
                   const SizedBox(height: 24),
                   _buildSectionTitle("Case Nature & Category"),
-                  DropdownButtonFormField<String>(
+                  DropdownButtonFormField<CaseNature>(
                     initialValue: _selectedNature,
-                    items: caseNaturesList
-                        .map((n) => DropdownMenuItem(value: n, child: Text(n)))
+                    items: CaseNature.values
+                        .map(
+                          (n) => DropdownMenuItem(
+                            value: n,
+                            child: Text(n.displayName),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) {
                       setState(() {
@@ -382,14 +410,17 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     ),
                   ),
 
-                  if (_selectedNature == "Revenue") ...[
+                  if (_selectedNature == CaseNature.revenue) ...[
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<Taluka>(
                       initialValue: _selectedTaluka,
                       hint: const Text("Select Taluka"),
-                      items: talukasList
+                      items: Taluka.values
                           .map(
-                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                            (t) => DropdownMenuItem(
+                              value: t,
+                              child: Text(t.displayName),
+                            ),
                           )
                           .toList(),
                       onChanged: (v) => setState(() => _selectedTaluka = v),
@@ -399,14 +430,17 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                     ),
                   ],
 
-                  if (_selectedNature == "General Administration") ...[
+                  if (_selectedNature == CaseNature.generalAdministration) ...[
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<Department>(
                       initialValue: _selectedDepartment,
                       hint: const Text("Select Department"),
-                      items: departmentsList
+                      items: Department.values
                           .map(
-                            (d) => DropdownMenuItem(value: d, child: Text(d)),
+                            (d) => DropdownMenuItem(
+                              value: d,
+                              child: Text(d.displayName),
+                            ),
                           )
                           .toList(),
                       onChanged: (v) => setState(() => _selectedDepartment = v),
@@ -420,10 +454,15 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
 
                   const SizedBox(height: 24),
                   _buildSectionTitle("Additional Information"),
-                  DropdownButtonFormField<String>(
+                  DropdownButtonFormField<CaseStatus>(
                     initialValue: _selectedStatus,
-                    items: ["Active", "Stay Granted", "Decided", "Dismissed"]
-                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                    items: CaseStatus.values
+                        .map(
+                          (s) => DropdownMenuItem(
+                            value: s,
+                            child: Text(s.displayName),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _selectedStatus = v!),
                     decoration: const InputDecoration(
