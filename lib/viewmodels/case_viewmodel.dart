@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:litigation_management_app/exceptions/app_exception.dart';
+import 'package:litigation_management_app/utils/constants.dart';
 
 import '../models/app_document.dart';
 import '../models/case_model.dart';
@@ -40,8 +44,8 @@ class CaseViewModel extends BaseViewModel<CaseState> {
         state = state.copyWith(cases: cases, isLoading: false);
       },
       onError: (error) {
+        log('ERROR: $error');
         state = state.copyWith(isLoading: false);
-        // Handle error appropriately
       },
     );
   }
@@ -94,18 +98,34 @@ class CaseViewModel extends BaseViewModel<CaseState> {
     state = state.copyWith(isLoading: false);
   }
 
-  // Document management still uses the Case document's list for now
-  // unless the user wants documents global too.
-  // Given the request "same for hearing as well", I'll stick to
-  // moving hearings but keeping documents in Case for now unless asked.
-  // Actually, let's keep it consistent.
-
-  void addDocument(String caseId, AppDocument doc) async {
-    state = state.copyWith(isLoading: true);
+  void addDocument(String caseId, DocumentType selectedType) async {
     await runSafely(() async {
+      state = state.copyWith(isLoading: true);
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png', 'txt'],
+      );
+
+      if (result == null || result.files.isEmpty) {
+        throw AppException('No document selected!');
+      }
+
+      final pickedFile = result.files.first;
+
+      const dummyUrl = "https://pdfobject.com/pdf/sample.pdf";
+      final newDoc = AppDocument(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: selectedType,
+        name: pickedFile.name,
+        fileName: dummyUrl,
+        uploadedAt: DateTime.now(),
+        size: pickedFile.size > 0
+            ? "${(pickedFile.size / 1024).toStringAsFixed(1)} KB"
+            : "200 KB",
+      );
       final currentCase = state.cases.firstWhere((c) => c.id == caseId);
       final updatedCase = currentCase.copyWith(
-        documents: [...currentCase.documents, doc],
+        documents: [...currentCase.documents, newDoc],
       );
       await locator<CaseService>().saveCase(updatedCase);
     });
@@ -123,7 +143,10 @@ class CaseViewModel extends BaseViewModel<CaseState> {
       final docToDelete = currentCase.documents.firstWhere(
         (d) => d.id == docId,
       );
-      if (docToDelete.fileName != null) {
+
+      // Only attempt to delete if it's a local file path (not a URL)
+      if (docToDelete.fileName != null &&
+          !docToDelete.fileName!.startsWith('http')) {
         await locator<FileService>().deleteFile(docToDelete.fileName!);
       }
 

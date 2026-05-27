@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -11,7 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/app_document.dart';
 import '../models/case_model.dart';
 import '../models/hearing.dart';
-import '../services/locator.dart';
 import '../utils/constants.dart';
 import '../viewmodels/case_viewmodel.dart';
 import 'add_hearing_screen.dart';
@@ -458,19 +454,21 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   }
 
   Future<void> _viewDocument(AppDocument doc) async {
-    if (doc.fileName != null) {
-      // final result = await OpenFile.open(doc.fileName);
-      // if (result.type != ResultType.done) {
-      //   if (mounted) {
-      //     ScaffoldMessenger.of(context).showSnackBar(
-      //       SnackBar(content: Text("Could not open file: ${result.message}")),
-      //     );
-      //   }
-      // }
+    if (doc.fileName != null && doc.fileName!.startsWith('http')) {
+      final uri = Uri.parse(doc.fileName!);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Could not open document link.")),
+          );
+        }
+      }
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("File path not found.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Document link not found or invalid.")),
+      );
     }
   }
 
@@ -538,27 +536,62 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   }
 
   Future<void> _uploadDocument(String? caseId) async {
-    if (caseId == null) {
-      return;
-    }
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    // FilePickerResult? result = await FilePicker.pickFiles();   //muneeb
-    if (result != null) {
-      PlatformFile file = result.files.first;
-      if (file.path != null) {
-        final savedPath = await locator<FileService>().saveFile(
-          File(file.path!),
-        );
+    if (caseId == null) return;
 
-        final newDoc = AppDocument(
-          type: DocumentType.other,
-          name: file.name,
-          fileName: savedPath,
-          uploadedAt: DateTime.now(),
-          size: "${(file.size / 1024).toStringAsFixed(1)} KB",
-        );
-        ref.read(caseProvider.notifier).addDocument(caseId, newDoc);
-      }
+    // 1. Ask for Document Type
+    final DocumentType? selectedType = await showModalBottomSheet<DocumentType>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Select Document Type",
+              style: GoogleFonts.playfairDisplay(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: AppColors.navy,
+              ),
+            ),
+            const Divider(),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: DocumentType.values
+                    .map(
+                      (type) => ListTile(
+                        leading: const Icon(
+                          Icons.description,
+                          color: AppColors.gold,
+                        ),
+                        title: Text(type.displayName),
+                        onTap: () => Navigator.pop(context, type),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (selectedType == null) return;
+
+    ref.read(caseProvider.notifier).addDocument(caseId, selectedType);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("${selectedType.displayName} saved successfully"),
+          backgroundColor: AppColors.navy,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 

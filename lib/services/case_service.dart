@@ -16,13 +16,12 @@ class CaseService {
     final uid = _userId;
     if (uid == null) return Stream.value([]);
 
-    return _caseCollection
-        .where('userId', isEqualTo: uid)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Case.fromMap(doc.data(), docId: doc.id))
-          .toList();
+    return _caseCollection.where('userId', isEqualTo: uid).snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs.map((doc) {
+        return Case.fromMap(doc.data(), docId: doc.id);
+      }).toList();
     });
   }
 
@@ -35,7 +34,7 @@ class CaseService {
 
     if (c.id == null || c.id!.isEmpty) {
       // Let Firebase generate the ID
-      caseData.remove('id'); 
+      caseData.remove('id');
       await _caseCollection.add(caseData);
     } else {
       await _caseCollection.doc(c.id).set(caseData, SetOptions(merge: true));
@@ -96,9 +95,9 @@ class CaseService {
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Hearing.fromMap(doc.data(), docId: doc.id))
-          .toList();
-    });
+          return snapshot.docs
+              .map((doc) => Hearing.fromMap(doc.data(), docId: doc.id))
+              .toList();
+        });
   }
 }
