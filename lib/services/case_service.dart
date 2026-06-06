@@ -83,8 +83,10 @@ class CaseService {
       );
 
       await _caseCollection.doc(caseId).update({
-        'lastHearing': latestHearing.date.toIso8601String(),
-        'nextHearing': latestHearing.nextDate?.toIso8601String(),
+        'lastHearing': Timestamp.fromDate(latestHearing.date),
+        'nextHearing': latestHearing.nextDate != null
+            ? Timestamp.fromDate(latestHearing.nextDate!)
+            : null,
       });
     }
   }

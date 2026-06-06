@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Hearing {
   final String? id;
   final String? caseId;
@@ -21,11 +23,11 @@ class Hearing {
     return {
       if (id != null) 'id': id,
       if (caseId != null) 'caseId': caseId,
-      'date': date.toIso8601String(),
+      'date': Timestamp.fromDate(date),
       'submitted': submitted,
       'happened': happened,
       'order': order,
-      'nextDate': nextDate?.toIso8601String(),
+      'nextDate': nextDate != null ? Timestamp.fromDate(nextDate!) : null,
     };
   }
 
@@ -33,11 +35,11 @@ class Hearing {
     return Hearing(
       id: docId ?? map['id'],
       caseId: map['caseId'],
-      date: DateTime.parse(map['date']),
+      date: map['date'].toDate(),
       submitted: map['submitted'] ?? '',
       happened: map['happened'] ?? '',
       order: map['order'] ?? '',
-      nextDate: map['nextDate'] != null ? DateTime.parse(map['nextDate']) : null,
+      nextDate: map['nextDate']?.toDate(),
     );
   }
 }

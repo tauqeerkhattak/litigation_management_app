@@ -1,17 +1,24 @@
 part of 'locator.dart';
 
-/// Service for handling local file operations.
-/// Note: Currently the app uses remote dummy URLs for document simulation,
-/// so this service is primarily reserved for future local caching or 
-/// actual file upload implementations.
 class FileService {
   FileService._();
 
-  /// Deletes a file from the local storage if it exists.
-  Future<void> deleteFile(String filePath) async {
-    final file = File(filePath);
-    if (await file.exists()) {
-      await file.delete();
-    }
+  final _storage = FirebaseStorage.instance;
+
+  Future<String?> uploadFile(
+    String userId,
+    String caseId,
+    PlatformFile file,
+  ) async {
+    final ref = _storage.ref('$userId/files/$caseId/${file.name}');
+    final bytes = await file.xFile.readAsBytes();
+    await ref.putData(bytes);
+    return await ref.getDownloadURL();
+  }
+
+  Future<void> deleteFile(String userId, String caseId, String fileName) async {
+    log('NAME: $fileName');
+    final ref = _storage.ref('$userId/files/$caseId/$fileName');
+    await ref.delete();
   }
 }

@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:litigation_management_app/exceptions/app_exception.dart';
 import 'package:litigation_management_app/utils/constants.dart';
+import 'package:litigation_management_app/viewmodels/auth_viewmodel.dart';
 
 import '../models/app_document.dart';
 import '../models/case_model.dart';
@@ -101,7 +102,7 @@ class CaseViewModel extends BaseViewModel<CaseState> {
   void addDocument(String caseId, DocumentType selectedType) async {
     await runSafely(() async {
       state = state.copyWith(isLoading: true);
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png', 'txt'],
       );
@@ -112,12 +113,17 @@ class CaseViewModel extends BaseViewModel<CaseState> {
 
       final pickedFile = result.files.first;
 
-      const dummyUrl = "https://pdfobject.com/pdf/sample.pdf";
+      final userId = ref.read(authProvider).user!.id;
+      final url = await locator<FileService>().uploadFile(
+        userId,
+        caseId,
+        pickedFile,
+      );
       final newDoc = AppDocument(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: selectedType,
         name: pickedFile.name,
-        fileName: dummyUrl,
+        url: url,
         uploadedAt: DateTime.now(),
         size: pickedFile.size > 0
             ? "${(pickedFile.size / 1024).toStringAsFixed(1)} KB"
@@ -143,12 +149,8 @@ class CaseViewModel extends BaseViewModel<CaseState> {
       final docToDelete = currentCase.documents.firstWhere(
         (d) => d.id == docId,
       );
-
-      // Only attempt to delete if it's a local file path (not a URL)
-      if (docToDelete.fileName != null &&
-          !docToDelete.fileName!.startsWith('http')) {
-        await locator<FileService>().deleteFile(docToDelete.fileName!);
-      }
+      final userId = ref.read(authProvider).user!.id;
+      await locator<FileService>().deleteFile(userId, caseId, docToDelete.url!);
 
       final updatedCase = currentCase.copyWith(documents: updatedDocs);
       await locator<CaseService>().saveCase(updatedCase);

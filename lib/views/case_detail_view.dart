@@ -454,17 +454,10 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   }
 
   Future<void> _viewDocument(AppDocument doc) async {
-    if (doc.fileName != null && doc.fileName!.startsWith('http')) {
-      final uri = Uri.parse(doc.fileName!);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Could not open document link.")),
-          );
-        }
-      }
+    if (doc.url != null && doc.url!.startsWith('http')) {
+      final uri = Uri.parse(doc.url!);
+
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Document link not found or invalid.")),

@@ -1,10 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../utils/constants.dart';
 
 class AppDocument {
   final String? id;
   final DocumentType type;
   final String name;
-  final String? fileName;
+  final String? url;
   final DateTime uploadedAt;
   final String? size;
 
@@ -12,7 +14,7 @@ class AppDocument {
     this.id,
     required this.type,
     required this.name,
-    this.fileName,
+    this.url,
     required this.uploadedAt,
     this.size,
   });
@@ -22,8 +24,8 @@ class AppDocument {
       'id': id,
       'type': type.name,
       'name': name,
-      'fileName': fileName,
-      'uploadedAt': uploadedAt.toIso8601String(),
+      'fileName': url,
+      'uploadedAt': Timestamp.fromDate(uploadedAt),
       'size': size,
     };
   }
@@ -33,8 +35,8 @@ class AppDocument {
       id: map['id'],
       type: DocumentType.values.byName(map['type'] ?? 'other'),
       name: map['name'],
-      fileName: map['fileName'],
-      uploadedAt: DateTime.parse(map['uploadedAt']),
+      url: map['fileName'],
+      uploadedAt: map['uploadedAt'].toDate(),
       size: map['size'],
     );
   }
@@ -51,7 +53,7 @@ class AppDocument {
       id: id ?? this.id,
       type: type ?? this.type,
       name: name ?? this.name,
-      fileName: fileName ?? this.fileName,
+      url: fileName ?? this.url,
       uploadedAt: uploadedAt ?? this.uploadedAt,
       size: size ?? this.size,
     );

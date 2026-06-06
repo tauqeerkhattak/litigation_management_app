@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../utils/constants.dart';
 import 'app_document.dart';
 
@@ -42,8 +44,7 @@ class Case {
     required this.documents,
   });
 
-  String get parties =>
-      "${plaintiffs.join(', ')} vs ${respondents.join(', ')}";
+  String get parties => "${plaintiffs.join(', ')} vs ${respondents.join(', ')}";
 
   Case copyWith({
     String? id,
@@ -98,9 +99,15 @@ class Case {
       'title': title,
       'plaintiffs': plaintiffs,
       'respondents': respondents,
-      'firstHearing': firstHearing?.toIso8601String(),
-      'lastHearing': lastHearing?.toIso8601String(),
-      'nextHearing': nextHearing?.toIso8601String(),
+      'firstHearing': firstHearing != null
+          ? Timestamp.fromDate(firstHearing!)
+          : null,
+      'lastHearing': lastHearing != null
+          ? Timestamp.fromDate(lastHearing!)
+          : null,
+      'nextHearing': nextHearing != null
+          ? Timestamp.fromDate(nextHearing!)
+          : null,
       'status': status.name,
       'notes': notes,
       'nature': nature.name,
@@ -125,20 +132,18 @@ class Case {
       respondents: map['respondents'] != null
           ? List<String>.from(map['respondents'])
           : _parseRespondents(map['parties'] ?? ''),
-      firstHearing: map['firstHearing'] != null
-          ? DateTime.parse(map['firstHearing'])
-          : null,
-      lastHearing: map['lastHearing'] != null
-          ? DateTime.parse(map['lastHearing'])
-          : null,
-      nextHearing: map['nextHearing'] != null
-          ? DateTime.parse(map['nextHearing'])
-          : null,
+      firstHearing: map['firstHearing']?.toDate(),
+      lastHearing: map['lastHearing']?.toDate(),
+      nextHearing: map['nextHearing']?.toDate(),
       status: CaseStatus.values.byName(map['status'] ?? 'active'),
       notes: map['notes'] ?? '',
       nature: CaseNature.values.byName(map['nature'] ?? 'other'),
-      department: map['department'] != null ? Department.values.byName(map['department']) : null,
-      taluka: map['taluka'] != null ? Taluka.values.byName(map['taluka']) : null,
+      department: map['department'] != null
+          ? Department.values.byName(map['department'])
+          : null,
+      taluka: map['taluka'] != null
+          ? Taluka.values.byName(map['taluka'])
+          : null,
       documents: List<AppDocument>.from(
         map['documents']?.map((x) => AppDocument.fromMap(x)) ?? [],
       ),
@@ -147,7 +152,11 @@ class Case {
 
   static List<String> _parsePlaintiffs(String parties) {
     if (parties.contains(' vs ')) {
-      return parties.split(' vs ')[0].split(', ').where((s) => s.isNotEmpty).toList();
+      return parties
+          .split(' vs ')[0]
+          .split(', ')
+          .where((s) => s.isNotEmpty)
+          .toList();
     }
     return parties.isNotEmpty ? [parties] : [''];
   }

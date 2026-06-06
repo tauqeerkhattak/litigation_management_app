@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:litigation_management_app/utils/validators.dart';
 
 import '../models/hearing.dart';
 import '../utils/constants.dart';
@@ -84,8 +85,9 @@ class _AddHearingScreenState extends ConsumerState<AddHearingScreen> {
                           firstDate: DateTime(2020),
                           lastDate: DateTime(2030),
                         );
-                        if (picked != null)
+                        if (picked != null) {
                           setState(() => _selectedDate = picked);
+                        }
                       },
                     ),
                   ),
@@ -93,6 +95,7 @@ class _AddHearingScreenState extends ConsumerState<AddHearingScreen> {
                   _buildSectionTitle("Proceedings Details"),
                   TextFormField(
                     controller: _submittedController,
+                    validator: Validators.notEmpty,
                     decoration: const InputDecoration(
                       labelText: "Submitted to Court",
                       hintText: "What was filed or submitted today?",
@@ -102,6 +105,7 @@ class _AddHearingScreenState extends ConsumerState<AddHearingScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _happenedController,
+                    validator: Validators.notEmpty,
                     decoration: const InputDecoration(
                       labelText: "What happened?",
                       hintText: "Summary of today's proceedings",
@@ -111,6 +115,7 @@ class _AddHearingScreenState extends ConsumerState<AddHearingScreen> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _orderController,
+                    validator: Validators.notEmpty,
                     decoration: const InputDecoration(
                       labelText: "Court Order / Direction",
                       hintText: "Any specific order passed by the court",
