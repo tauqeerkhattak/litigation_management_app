@@ -24,8 +24,8 @@ class AppDocument {
       'id': id,
       'type': type.name,
       'name': name,
-      'fileName': url,
-      'uploadedAt': Timestamp.fromDate(uploadedAt),
+      'file_name': url,
+      'uploaded_at': Timestamp.fromDate(uploadedAt),
       'size': size,
     };
   }
@@ -35,8 +35,8 @@ class AppDocument {
       id: map['id'],
       type: DocumentType.values.byName(map['type'] ?? 'other'),
       name: map['name'],
-      url: map['fileName'],
-      uploadedAt: map['uploadedAt'].toDate(),
+      url: map['file_name'],
+      uploadedAt: map['uploaded_at'].toDate(),
       size: map['size'],
     );
   }

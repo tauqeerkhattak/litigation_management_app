@@ -22,24 +22,24 @@ class Hearing {
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
-      if (caseId != null) 'caseId': caseId,
+      if (caseId != null) 'case_id': caseId,
       'date': Timestamp.fromDate(date),
       'submitted': submitted,
       'happened': happened,
       'order': order,
-      'nextDate': nextDate != null ? Timestamp.fromDate(nextDate!) : null,
+      'next_date': nextDate != null ? Timestamp.fromDate(nextDate!) : null,
     };
   }
 
   factory Hearing.fromMap(Map<String, dynamic> map, {String? docId}) {
     return Hearing(
       id: docId ?? map['id'],
-      caseId: map['caseId'],
+      caseId: map['case_id'],
       date: map['date'].toDate(),
       submitted: map['submitted'] ?? '',
       happened: map['happened'] ?? '',
       order: map['order'] ?? '',
-      nextDate: map['nextDate']?.toDate(),
+      nextDate: map['next_date']?.toDate(),
     );
   }
 }

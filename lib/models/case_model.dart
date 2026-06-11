@@ -91,21 +91,21 @@ class Case {
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,
-      if (userId != null) 'userId': userId,
-      'caseNo': caseNo,
+      if (userId != null) 'user_id': userId,
+      'case_no': caseNo,
       'year': year,
       'court': court.name,
       'bench': bench.name,
       'title': title,
       'plaintiffs': plaintiffs,
       'respondents': respondents,
-      'firstHearing': firstHearing != null
+      'first_hearing': firstHearing != null
           ? Timestamp.fromDate(firstHearing!)
           : null,
-      'lastHearing': lastHearing != null
+      'last_hearing': lastHearing != null
           ? Timestamp.fromDate(lastHearing!)
           : null,
-      'nextHearing': nextHearing != null
+      'next_hearing': nextHearing != null
           ? Timestamp.fromDate(nextHearing!)
           : null,
       'status': status.name,
@@ -120,21 +120,21 @@ class Case {
   factory Case.fromMap(Map<String, dynamic> map, {String? docId}) {
     return Case(
       id: docId ?? map['id'],
-      userId: map['userId'],
-      caseNo: map['caseNo'] ?? '',
+      userId: map['user_id'],
+      caseNo: map['case_no'] ?? '',
       year: map['year'] ?? DateTime.now().year,
       court: Court.values.byName(map['court'] ?? 'other'),
       bench: Bench.values.byName(map['bench'] ?? 'singleBench'),
       title: map['title'] ?? '',
       plaintiffs: map['plaintiffs'] != null
           ? List<String>.from(map['plaintiffs'])
-          : _parsePlaintiffs(map['parties'] ?? ''),
+          : [],
       respondents: map['respondents'] != null
           ? List<String>.from(map['respondents'])
-          : _parseRespondents(map['parties'] ?? ''),
-      firstHearing: map['firstHearing']?.toDate(),
-      lastHearing: map['lastHearing']?.toDate(),
-      nextHearing: map['nextHearing']?.toDate(),
+          : [],
+      firstHearing: map['first_hearing']?.toDate(),
+      lastHearing: map['last_hearing']?.toDate(),
+      nextHearing: map['next_hearing']?.toDate(),
       status: CaseStatus.values.byName(map['status'] ?? 'active'),
       notes: map['notes'] ?? '',
       nature: CaseNature.values.byName(map['nature'] ?? 'other'),
@@ -148,24 +148,5 @@ class Case {
         map['documents']?.map((x) => AppDocument.fromMap(x)) ?? [],
       ),
     );
-  }
-
-  static List<String> _parsePlaintiffs(String parties) {
-    if (parties.contains(' vs ')) {
-      return parties
-          .split(' vs ')[0]
-          .split(', ')
-          .where((s) => s.isNotEmpty)
-          .toList();
-    }
-    return parties.isNotEmpty ? [parties] : [''];
-  }
-
-  static List<String> _parseRespondents(String parties) {
-    if (parties.contains(' vs ')) {
-      final parts = parties.split(' vs ');
-      return parts[1].split(', ').where((s) => s.isNotEmpty).toList();
-    }
-    return [''];
   }
 }
