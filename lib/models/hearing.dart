@@ -42,4 +42,24 @@ class Hearing {
       nextDate: map['next_date']?.toDate(),
     );
   }
+
+  Hearing copyWith({
+    String? id,
+    String? caseId,
+    DateTime? date,
+    String? submitted,
+    String? happened,
+    String? order,
+    DateTime? nextDate,
+  }) {
+    return Hearing(
+      id: id ?? this.id,
+      caseId: caseId ?? this.caseId,
+      date: date ?? this.date,
+      submitted: submitted ?? this.submitted,
+      happened: happened ?? this.happened,
+      order: order ?? this.order,
+      nextDate: nextDate ?? this.nextDate,
+    );
+  }
 }

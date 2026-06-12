@@ -204,3 +204,10 @@ extension DocumentTypeExtension on DocumentType {
     }
   }
 }
+
+enum UserRole {
+  editor, // Can create cases, hearings, and add documents
+  commentor, // Cannot create cases, can create hearings and add documents
+  documentor, // Cannot create cases and hearings, can only add documents
+  viewer, // Only view cases, hearings, and documents
+}

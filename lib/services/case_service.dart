@@ -6,19 +6,11 @@ class CaseService {
 
   String? get _userId => FirebaseAuth.instance.currentUser?.uid;
 
-  CollectionReference<Map<String, dynamic>> get _caseCollection =>
-      _db.collection('cases');
-
-  CollectionReference<Map<String, dynamic>> get _hearingCollection =>
-      _db.collection('hearings');
-
   Stream<List<Case>> streamCases() {
     final uid = _userId;
     if (uid == null) return Stream.value([]);
 
-    return _caseCollection.where('userId', isEqualTo: uid).snapshots().map((
-      snapshot,
-    ) {
+    return _db.collection('cases').snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return Case.fromMap(doc.data(), docId: doc.id);
       }).toList();
@@ -29,24 +21,26 @@ class CaseService {
     final uid = _userId;
     if (uid == null) throw Exception("User not authenticated");
 
-    final caseData = c.toMap();
-    caseData['userId'] = uid;
+    final caseData = c.copyWith(userId: uid);
 
     if (c.id == null || c.id!.isEmpty) {
-      // Let Firebase generate the ID
-      caseData.remove('id');
-      await _caseCollection.add(caseData);
+      final doc = _db.collection('cases').doc();
+      await doc.set(caseData.copyWith(id: doc.id).toMap());
     } else {
-      await _caseCollection.doc(c.id).set(caseData, SetOptions(merge: true));
+      await _db
+          .collection('cases')
+          .doc(c.id)
+          .set(caseData.toMap(), SetOptions(merge: true));
     }
   }
 
   Future<void> deleteCase(String id) async {
-    await _caseCollection.doc(id).delete();
+    await _db.collection('cases').doc(id).delete();
 
     // Delete associated hearings
-    final hearings = await _hearingCollection
-        .where('caseId', isEqualTo: id)
+    final hearings = await _db
+        .collection('hearings')
+        .where('case_id', isEqualTo: id)
         .get();
     for (var doc in hearings.docs) {
       await doc.reference.delete();
@@ -54,24 +48,25 @@ class CaseService {
   }
 
   Future<void> addHearing(String caseId, Hearing hearing) async {
-    final hearingData = hearing.toMap();
-    hearingData['caseId'] = caseId;
+    final hearingData = hearing.copyWith(caseId: caseId);
 
     if (hearing.id == null || hearing.id!.isEmpty) {
-      hearingData.remove('id');
-      await _hearingCollection.add(hearingData);
+      final doc = _db.collection('hearings').doc();
+      await doc.set(hearingData.copyWith(id: doc.id).toMap());
     } else {
-      await _hearingCollection
+      await _db
+          .collection('hearings')
           .doc(hearing.id)
-          .set(hearingData, SetOptions(merge: true));
+          .set(hearingData.toMap(), SetOptions(merge: true));
     }
 
     await _updateCaseDates(caseId);
   }
 
   Future<void> _updateCaseDates(String caseId) async {
-    final hearings = await _hearingCollection
-        .where('caseId', isEqualTo: caseId)
+    final hearings = await _db
+        .collection('hearings')
+        .where('case_id', isEqualTo: caseId)
         .orderBy('date', descending: true)
         .get();
 
@@ -81,10 +76,9 @@ class CaseService {
         latestHearingData,
         docId: hearings.docs.first.id,
       );
-
-      await _caseCollection.doc(caseId).update({
-        'lastHearing': Timestamp.fromDate(latestHearing.date),
-        'nextHearing': latestHearing.nextDate != null
+      await _db.collection('cases').doc(caseId).update({
+        'last_hearing': Timestamp.fromDate(latestHearing.date),
+        'next_hearing': latestHearing.nextDate != null
             ? Timestamp.fromDate(latestHearing.nextDate!)
             : null,
       });
@@ -92,8 +86,9 @@ class CaseService {
   }
 
   Stream<List<Hearing>> streamHearings(String caseId) {
-    return _hearingCollection
-        .where('caseId', isEqualTo: caseId)
+    return _db
+        .collection('hearings')
+        .where('case_id', isEqualTo: caseId)
         .orderBy('date', descending: true)
         .snapshots()
         .map((snapshot) {

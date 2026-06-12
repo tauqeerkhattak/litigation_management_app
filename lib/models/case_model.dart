@@ -90,8 +90,8 @@ class Case {
 
   Map<String, dynamic> toMap() {
     return {
-      if (id != null) 'id': id,
-      if (userId != null) 'user_id': userId,
+      'id': id,
+      'user_id': userId,
       'case_no': caseNo,
       'year': year,
       'court': court.name,
@@ -132,9 +132,9 @@ class Case {
       respondents: map['respondents'] != null
           ? List<String>.from(map['respondents'])
           : [],
-      firstHearing: map['first_hearing']?.toDate(),
-      lastHearing: map['last_hearing']?.toDate(),
-      nextHearing: map['next_hearing']?.toDate(),
+      firstHearing: (map['first_hearing'] as Timestamp?)?.toDate(),
+      lastHearing: (map['last_hearing'] as Timestamp?)?.toDate(),
+      nextHearing: (map['next_hearing'] as Timestamp?)?.toDate(),
       status: CaseStatus.values.byName(map['status'] ?? 'active'),
       notes: map['notes'] ?? '',
       nature: CaseNature.values.byName(map['nature'] ?? 'other'),
