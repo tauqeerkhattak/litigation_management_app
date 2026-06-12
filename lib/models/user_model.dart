@@ -1,3 +1,27 @@
+enum UserRole {
+  editor,
+  commentor,
+  documentor,
+  viewer;
+
+  static UserRole fromString(String role) {
+    return UserRole.values.firstWhere(
+          (r) => r.name == role,
+      orElse: () => UserRole.viewer,
+    );
+  }
+
+  bool get canCreateCases => this == UserRole.editor;
+
+  bool get canCreateHearings =>
+      this == UserRole.editor || this == UserRole.commentor;
+
+  bool get canAddDocuments =>
+      this == UserRole.editor ||
+          this == UserRole.commentor ||
+          this == UserRole.documentor;
+}
+
 class UserData {
   final String id;
   final String name;

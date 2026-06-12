@@ -17,7 +17,8 @@ class NotificationService {
 
     // ✅ v18 uses positional param, not named 'settings:'
     await flutterLocalNotificationsPlugin.initialize(
-      settings: initializationSettings,
+     initializationSettings,
+
     );
   }
 
@@ -43,12 +44,12 @@ class NotificationService {
 
     // ✅ v18 uses positional params, not named params
     await flutterLocalNotificationsPlugin.zonedSchedule(
-      id: id,
-      title: 'Upcoming Hearing Reminder',
-      body:
+       id,
+      title,
+
           'Case: $title is scheduled for ${hearingDate.day}/${hearingDate.month}',
-      scheduledDate: tz.TZDateTime.from(reminderDate, tz.local),
-      notificationDetails: const NotificationDetails(
+      tz.TZDateTime.from(reminderDate, tz.local),
+       const NotificationDetails(
         android: AndroidNotificationDetails(
           'hearing_reminders',
           'Hearing Reminders',

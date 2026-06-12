@@ -8,7 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/app_document.dart';
 import '../models/case_model.dart';
 import '../models/hearing.dart';
+import '../models/user_model.dart';
 import '../utils/constants.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/case_viewmodel.dart';
 import 'add_hearing_screen.dart';
 
@@ -24,6 +26,7 @@ class CaseDetailView extends ConsumerStatefulWidget {
 class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+
 
   @override
   void initState() {
@@ -48,7 +51,8 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
       orElse: () =>
           cases.isNotEmpty ? cases.first : throw Exception("Case not found"),
     );
-
+    final user = ref.watch(authProvider).user;
+    final role = UserRole.fromString(user?.role ?? 'viewer');
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -102,8 +106,8 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
               controller: _tabController,
               children: [
                 _buildOverviewTab(c),
-                _buildHearingsTab(c),
-                _buildDocumentsTab(c),
+                _buildHearingsTab(c,role),
+                _buildDocumentsTab(c,role),
               ],
             ),
     );
@@ -217,8 +221,9 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     );
   }
 
-  Widget _buildHearingsTab(Case c) {
+  Widget _buildHearingsTab(Case c, UserRole role) {
     final hearingsAsync = ref.watch(hearingsProvider(widget.caseId));
+
 
     return Column(
       children: [
@@ -227,11 +232,12 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              role.canCreateHearings ?
               ElevatedButton.icon(
                 onPressed: _showAddHearingScreen,
                 icon: const Icon(Icons.add),
                 label: const Text("Add Hearing"),
-              ),
+              ) : SizedBox(),
             ],
           ),
         ),
@@ -363,7 +369,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     );
   }
 
-  Widget _buildDocumentsTab(Case c) {
+  Widget _buildDocumentsTab(Case c,UserRole role) {
     return Column(
       children: [
         Padding(
@@ -371,11 +377,12 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              role.canAddDocuments ?
               ElevatedButton.icon(
                 onPressed: () => _uploadDocument(c.id),
                 icon: const Icon(Icons.upload_file),
                 label: const Text("Upload Document"),
-              ),
+              ) : SizedBox(),
             ],
           ),
         ),
@@ -416,6 +423,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                           color: AppColors.gold,
                         ),
                       ),
+                      if(role.canAddDocuments)
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, size: 18),
                         onSelected: (value) {

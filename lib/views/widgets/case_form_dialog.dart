@@ -100,7 +100,7 @@ class _CaseFormDialogState extends State<CaseFormDialog> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<Court>(
-                initialValue: _selectedCourt,
+                value: _selectedCourt,
                 items: Court.values
                     .map(
                       (c) => DropdownMenuItem(
@@ -113,7 +113,7 @@ class _CaseFormDialogState extends State<CaseFormDialog> {
                 decoration: const InputDecoration(labelText: "Court"),
               ),
               DropdownButtonFormField<CaseNature>(
-                initialValue: _selectedNature,
+                value: _selectedNature,
                 items: CaseNature.values
                     .map(
                       (n) => DropdownMenuItem(

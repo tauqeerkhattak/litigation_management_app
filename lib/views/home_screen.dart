@@ -58,6 +58,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final urgentCount = ref.watch(urgentCasesCountProvider);
 
+    final role = UserRole.fromString(user?.role ?? 'viewer');
+
+
     return Scaffold(
       drawer: _buildDrawer(user),
       appBar: AppBar(
@@ -129,7 +132,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
+
+      floatingActionButton: role.canCreateCases
+          ? FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -137,7 +142,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           );
         },
         child: const Icon(Icons.add),
-      ),
+      )
+          : null,
     );
   }
 

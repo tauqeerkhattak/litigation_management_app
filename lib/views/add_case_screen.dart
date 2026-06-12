@@ -243,7 +243,8 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<Court>(
-                    initialValue: _selectedCourt,
+                    value: _selectedCourt,
+                  //  initialValue: _selectedCourt,
                     items: Court.values
                         .map(
                           (c) => DropdownMenuItem(
@@ -257,7 +258,8 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<Bench>(
-                    initialValue: _selectedBench,
+                    value: _selectedBench,
+                    //initialValue: _selectedBench,
                     items: Bench.values
                         .map(
                           (b) => DropdownMenuItem(
@@ -389,7 +391,8 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle("Case Nature & Category"),
                   DropdownButtonFormField<CaseNature>(
-                    initialValue: _selectedNature,
+                  //  initialValue: _selectedNature,
+                    value: _selectedNature,
                     items: CaseNature.values
                         .map(
                           (n) => DropdownMenuItem(
@@ -413,7 +416,8 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   if (_selectedNature == CaseNature.revenue) ...[
                     const SizedBox(height: 16),
                     DropdownButtonFormField<Taluka>(
-                      initialValue: _selectedTaluka,
+                     // initialValue: _selectedTaluka,
+                      value: _selectedTaluka,
                       hint: const Text("Select Taluka"),
                       items: Taluka.values
                           .map(
@@ -433,7 +437,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   if (_selectedNature == CaseNature.generalAdministration) ...[
                     const SizedBox(height: 16),
                     DropdownButtonFormField<Department>(
-                      initialValue: _selectedDepartment,
+                      value: _selectedDepartment,
                       hint: const Text("Select Department"),
                       items: Department.values
                           .map(
@@ -455,7 +459,7 @@ class _AddCaseScreenState extends ConsumerState<AddCaseScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle("Additional Information"),
                   DropdownButtonFormField<CaseStatus>(
-                    initialValue: _selectedStatus,
+                    value: _selectedStatus,
                     items: CaseStatus.values
                         .map(
                           (s) => DropdownMenuItem(

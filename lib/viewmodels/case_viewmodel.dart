@@ -102,7 +102,8 @@ class CaseViewModel extends BaseViewModel<CaseState> {
   void addDocument(String caseId, DocumentType selectedType) async {
     await runSafely(() async {
       state = state.copyWith(isLoading: true);
-      final FilePickerResult? result = await FilePicker.pickFiles(
+    //  final FilePickerResult? result = await FilePicker.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'png', 'txt'],
       );
