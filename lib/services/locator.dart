@@ -14,6 +14,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../models/case_model.dart';
 import '../models/hearing.dart';
 import '../models/user_model.dart';
+import '../utils/constants.dart';
 
 part 'auth_service.dart';
 part 'case_service.dart';

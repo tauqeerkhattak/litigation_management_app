@@ -204,3 +204,26 @@ extension DocumentTypeExtension on DocumentType {
     }
   }
 }
+
+// enum UserRole {
+//   editor, // Can create cases, hearings, and add documents
+//   commentor, // Cannot create cases, can create hearings and add documents
+//   documentor, // Cannot create cases and hearings, can only add documents
+//   viewer, // Only view cases, hearings, and documents
+// }
+enum UserRole {
+  editor,
+  commentor,
+  documentor,
+  viewer;
+
+  bool get canCreateCases => this == UserRole.editor;
+
+  bool get canCreateHearings =>
+      this == UserRole.editor || this == UserRole.commentor;
+
+  bool get canAddDocuments =>
+      this == UserRole.editor ||
+          this == UserRole.commentor ||
+          this == UserRole.documentor;
+}

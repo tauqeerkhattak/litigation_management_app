@@ -58,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final urgentCount = ref.watch(urgentCasesCountProvider);
 
-    final role = UserRole.fromString(user?.role ?? 'viewer');
+    final role = user?.role  ?? UserRole.viewer;
 
 
     return Scaffold(

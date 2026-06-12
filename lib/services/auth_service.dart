@@ -16,7 +16,9 @@ class AuthService {
       return UserData(
         id: user.uid,
         name: user.displayName ?? email.split('@')[0],
-        role: "User", // Role could be fetched from Firestore in a later step
+        role: UserRole.editor,
+        countryCode: '+92',
+        phoneNumber: '',
         email: user.email ?? "",
       );
     }
@@ -33,7 +35,9 @@ class AuthService {
       return UserData(
         id: user.uid,
         name: user.displayName ?? user.email?.split('@')[0] ?? "User",
-        role: "User",
+        role: UserRole.editor,
+        countryCode: '+92',
+        phoneNumber: '',
         email: user.email ?? "",
       );
     }

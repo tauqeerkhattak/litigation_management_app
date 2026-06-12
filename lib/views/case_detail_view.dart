@@ -52,7 +52,7 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
           cases.isNotEmpty ? cases.first : throw Exception("Case not found"),
     );
     final user = ref.watch(authProvider).user;
-    final role = UserRole.fromString(user?.role ?? 'viewer');
+    final role = user?.role ?? UserRole.viewer;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
