@@ -13,7 +13,6 @@ import '../utils/constants.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/case_viewmodel.dart';
 import 'add_hearing_screen.dart';
-
 class CaseDetailView extends ConsumerStatefulWidget {
   final String caseId;
 
@@ -26,7 +25,6 @@ class CaseDetailView extends ConsumerStatefulWidget {
 class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
 
   @override
   void initState() {
@@ -47,17 +45,37 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     }
 
     final c = cases.firstWhere(
-      (element) => element.id == widget.caseId,
+          (element) => element.id == widget.caseId,
       orElse: () =>
-          cases.isNotEmpty ? cases.first : throw Exception("Case not found"),
+      cases.isNotEmpty ? cases.first : throw Exception("Case not found"),
     );
     final user = ref.watch(authProvider).user;
     final role = user?.role ?? UserRole.viewer;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FA),
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Center(
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back, size: 18),
+                color: AppColors.text,
+              ),
+            ),
+          ),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,22 +85,40 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
               style: GoogleFonts.playfairDisplay(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
+                color: AppColors.text,
               ),
             ),
             Text(
-              "${c.caseNo} / ${c.year} - ${c.court.displayName}",
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              "${c.caseNo} / ${c.year}  ·  ${c.court.displayName}",
+              style: const TextStyle(
                 fontSize: 10,
                 color: AppColors.muted,
+                letterSpacing: 0.1,
               ),
             ),
           ],
         ),
         actions: [
-          IconButton(
-            onPressed: () => _shareToWhatsApp(c),
-            icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20),
-            tooltip: "Share via WhatsApp",
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xFFE8F8EF),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                onPressed: () => _shareToWhatsApp(c),
+                icon: const FaIcon(
+                  FontAwesomeIcons.whatsapp,
+                  size: 17,
+                  color: Color(0xFF25D366),
+                ),
+                tooltip: "Share via WhatsApp",
+              ),
+            ),
           ),
         ],
         bottom: TabBar(
@@ -91,6 +127,8 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
           unselectedLabelColor: AppColors.muted,
           indicatorColor: AppColors.gold,
           indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+          unselectedLabelStyle: const TextStyle(fontSize: 13),
           tabs: const [
             Tab(text: "Overview"),
             Tab(text: "Hearings"),
@@ -100,16 +138,16 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
       ),
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.gold),
-            )
+        child: CircularProgressIndicator(color: AppColors.gold),
+      )
           : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildOverviewTab(c),
-                _buildHearingsTab(c,role),
-                _buildDocumentsTab(c,role),
-              ],
-            ),
+        controller: _tabController,
+        children: [
+          _buildOverviewTab(c),
+          _buildHearingsTab(c, role),
+          _buildDocumentsTab(c, role),
+        ],
+      ),
     );
   }
 
@@ -143,13 +181,13 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
       child: Column(
         children: [
           _buildInfoGrid(infoItems),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.cream,
-              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: AppColors.border),
             ),
             child: Column(
@@ -158,15 +196,20 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                 const Text(
                   "NOTES / BACKGROUND",
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 0.6,
                     color: AppColors.muted,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   c.notes,
-                  style: const TextStyle(fontSize: 13, height: 1.5),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.6,
+                    color: AppColors.text,
+                  ),
                 ),
               ],
             ),
@@ -188,29 +231,31 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
       ),
       itemCount: items.length,
       itemBuilder: (ctx, i) => Container(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.cream,
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               items[i][0].toUpperCase(),
               style: const TextStyle(
                 fontSize: 9,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             Text(
               items[i][1],
               style: const TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
                 color: AppColors.text,
               ),
               overflow: TextOverflow.ellipsis,
@@ -224,102 +269,147 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   Widget _buildHearingsTab(Case c, UserRole role) {
     final hearingsAsync = ref.watch(hearingsProvider(widget.caseId));
 
-
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              role.canCreateHearings ?
-              ElevatedButton.icon(
-                onPressed: _showAddHearingScreen,
-                icon: const Icon(Icons.add),
-                label: const Text("Add Hearing"),
-              ) : SizedBox(),
+              if (role.canCreateHearings)
+                ElevatedButton.icon(
+                  onPressed: _showAddHearingScreen,
+                  icon: const Icon(Icons.add, size: 16),
+                  label: const Text("Add Hearing"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
         Expanded(
           child: hearingsAsync.when(
             data: (hearings) => hearings.isEmpty
-                ? const Center(child: Text("No hearings recorded yet"))
+                ? Center(
+              child: Text(
+                "No hearings recorded yet",
+                style: TextStyle(
+                  color: AppColors.muted,
+                  fontSize: 14,
+                ),
+              ),
+            )
                 : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: hearings.length,
-                    itemBuilder: (ctx, i) {
-                      final h = hearings[i];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  DateFormat('dd-MMM-yyyy').format(h.date),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.navy,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+              itemCount: hearings.length,
+              itemBuilder: (ctx, i) {
+                final h = hearings[i];
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateFormat('dd-MMM-yyyy').format(h.date),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.navy,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              if (h.nextDate != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 9,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEEF4FF),
+                                    border: Border.all(
+                                      color: const Color(0xFFB5D4F4),
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    "Next: ${DateFormat('dd-MMM-yyyy').format(h.nextDate!)}",
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF185FA5),
+                                    ),
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    if (h.nextDate != null)
-                                      Text(
-                                        "Next: ${DateFormat('dd-MMM-yyyy').format(h.nextDate!)}",
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: AppColors.muted,
-                                        ),
-                                      ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      onPressed: () =>
-                                          _shareHearingToWhatsApp(c, h),
-                                      icon: const FaIcon(
-                                        FontAwesomeIcons.whatsapp,
-                                        size: 16,
-                                        color: AppColors.green,
-                                      ),
-                                      constraints: const BoxConstraints(),
-                                      padding: EdgeInsets.zero,
-                                      tooltip: "Share Hearing details",
-                                    ),
-                                  ],
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFFE8F8EF),
                                 ),
-                              ],
-                            ),
-                            const Divider(height: 20),
-                            _buildHearingDetail(
-                              "Submitted",
-                              h.submitted,
-                              AppColors.gold,
-                            ),
-                            _buildHearingDetail(
-                              "Proceedings",
-                              h.happened,
-                              AppColors.navy,
-                            ),
-                            _buildHearingDetail(
-                              "Court Order",
-                              h.order,
-                              const Color(0xFF2980B9),
-                              isOrder: true,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                                child: IconButton(
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () =>
+                                      _shareHearingToWhatsApp(c, h),
+                                  icon: const FaIcon(
+                                    FontAwesomeIcons.whatsapp,
+                                    size: 13,
+                                    color: Color(0xFF25D366),
+                                  ),
+                                  tooltip: "Share Hearing details",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 20),
+                      _buildHearingDetail(
+                        "Submitted",
+                        h.submitted,
+                        AppColors.gold,
+                      ),
+                      _buildHearingDetail(
+                        "Proceedings",
+                        h.happened,
+                        AppColors.navy,
+                      ),
+                      _buildHearingDetail(
+                        "Court Order",
+                        h.order,
+                        const Color(0xFF2980B9),
+                        isOrder: true,
+                      ),
+                    ],
                   ),
+                );
+              },
+            ),
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.gold),
             ),
@@ -331,11 +421,11 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   }
 
   Widget _buildHearingDetail(
-    String label,
-    String text,
-    Color color, {
-    bool isOrder = false,
-  }) {
+      String label,
+      String text,
+      Color color, {
+        bool isOrder = false,
+      }) {
     if (text.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -347,111 +437,174 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
               color: color,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Container(
             padding: isOrder ? const EdgeInsets.all(8) : null,
             decoration: isOrder
-                ? BoxDecoration(
-                    color: const Color(0xFFEEF6FB),
-                    border: const Border(
-                      left: BorderSide(color: Color(0xFF2980B9), width: 3),
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  )
+                ? const BoxDecoration(
+              color: Color(0xFFEEF6FB),
+              border: Border(
+                left: BorderSide(color: Color(0xFF2980B9), width: 3),
+              ),
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(4),
+                bottomRight: Radius.circular(4),
+              ),
+            )
                 : null,
-            child: Text(text, style: const TextStyle(fontSize: 12)),
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, height: 1.5),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDocumentsTab(Case c,UserRole role) {
+  Widget _buildDocumentsTab(Case c, UserRole role) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              role.canAddDocuments ?
-              ElevatedButton.icon(
-                onPressed: () => _uploadDocument(c.id),
-                icon: const Icon(Icons.upload_file),
-                label: const Text("Upload Document"),
-              ) : SizedBox(),
+              if (role.canAddDocuments)
+                ElevatedButton.icon(
+                  onPressed: () => _uploadDocument(c.id),
+                  icon: const Icon(Icons.upload_file, size: 16),
+                  label: const Text("Upload Document"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gold,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
             itemCount: c.documents.length,
             itemBuilder: (ctx, i) {
               final d = c.documents[i];
-              return Card(
-                color: AppColors.white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: const BorderSide(color: AppColors.border),
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
                 ),
-                child: ListTile(
-                  leading: const Icon(Icons.description, color: AppColors.navy),
-                  title: Text(
-                    d.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "${d.type.displayName} • ${DateFormat('dd-MMM-yyyy').format(d.uploadedAt)}",
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () => _viewDocument(d),
-                        icon: const Icon(
-                          Icons.visibility,
-                          size: 18,
-                          color: AppColors.gold,
-                        ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF4FF),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      if(role.canAddDocuments)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, size: 18),
-                        onSelected: (value) {
-                          if (c.id == null) {
-                            return;
-                          }
-                          if (value == 'rename') {
-                            _showRenameDialog(c.id!, d);
-                          } else if (value == 'delete') {
-                            _showDeleteConfirmDialog(c.id!, d);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'rename',
-                            child: Text('Rename'),
+                      child: const Icon(
+                        Icons.description_outlined,
+                        color: AppColors.navy,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            d.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: AppColors.text,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.red),
+                          const SizedBox(height: 2),
+                          Text(
+                            "${d.type.displayName}  ·  ${DateFormat('dd-MMM-yyyy').format(d.uploadedAt)}",
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.muted,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => _viewDocument(d),
+                          icon: const Icon(
+                            Icons.visibility_outlined,
+                            size: 18,
+                            color: AppColors.gold,
+                          ),
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                        ),
+                        if (role.canAddDocuments)
+                          PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              size: 18,
+                              color: AppColors.muted,
+                            ),
+                            padding: const EdgeInsets.all(6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            onSelected: (value) {
+                              if (c.id == null) return;
+                              if (value == 'rename') {
+                                _showRenameDialog(c.id!, d);
+                              } else if (value == 'delete') {
+                                _showDeleteConfirmDialog(c.id!, d);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              const PopupMenuItem(
+                                value: 'rename',
+                                child: Text('Rename'),
+                              ),
+                              const PopupMenuItem(
+                                value: 'delete',
+                                child: Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -464,7 +617,6 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   Future<void> _viewDocument(AppDocument doc) async {
     if (doc.url != null && doc.url!.startsWith('http')) {
       final uri = Uri.parse(doc.url!);
-
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -539,7 +691,6 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
   Future<void> _uploadDocument(String? caseId) async {
     if (caseId == null) return;
 
-    // 1. Ask for Document Type
     final DocumentType? selectedType = await showModalBottomSheet<DocumentType>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -565,14 +716,14 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
                 children: DocumentType.values
                     .map(
                       (type) => ListTile(
-                        leading: const Icon(
-                          Icons.description,
-                          color: AppColors.gold,
-                        ),
-                        title: Text(type.displayName),
-                        onTap: () => Navigator.pop(context, type),
-                      ),
-                    )
+                    leading: const Icon(
+                      Icons.description,
+                      color: AppColors.gold,
+                    ),
+                    title: Text(type.displayName),
+                    onTap: () => Navigator.pop(context, type),
+                  ),
+                )
                     .toList(),
               ),
             ),
@@ -641,3 +792,630 @@ class _CaseDetailViewState extends ConsumerState<CaseDetailView>
     }
   }
 }
+// class CaseDetailView extends ConsumerStatefulWidget {
+//   final String caseId;
+//
+//   const CaseDetailView({super.key, required this.caseId});
+//
+//   @override
+//   ConsumerState<CaseDetailView> createState() => _CaseDetailViewState();
+// }
+//
+// class _CaseDetailViewState extends ConsumerState<CaseDetailView>
+//     with SingleTickerProviderStateMixin {
+//   late TabController _tabController;
+//
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//     _tabController = TabController(length: 3, vsync: this);
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final caseState = ref.watch(caseProvider);
+//     final cases = caseState.cases;
+//     final isLoading = caseState.isLoading;
+//
+//     if (cases.isEmpty && isLoading) {
+//       return const Scaffold(
+//         body: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+//       );
+//     }
+//
+//     final c = cases.firstWhere(
+//       (element) => element.id == widget.caseId,
+//       orElse: () =>
+//           cases.isNotEmpty ? cases.first : throw Exception("Case not found"),
+//     );
+//     final user = ref.watch(authProvider).user;
+//     final role = user?.role ?? UserRole.viewer;
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: IconButton(
+//           onPressed: () => Navigator.pop(context),
+//           icon: const Icon(Icons.arrow_back),
+//         ),
+//         title: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               c.title,
+//               style: GoogleFonts.playfairDisplay(
+//                 fontSize: 14,
+//                 fontWeight: FontWeight.bold,
+//               ),
+//             ),
+//             Text(
+//               "${c.caseNo} / ${c.year} - ${c.court.displayName}",
+//               style: Theme.of(context).textTheme.bodySmall?.copyWith(
+//                 fontSize: 10,
+//                 color: AppColors.muted,
+//               ),
+//             ),
+//           ],
+//         ),
+//         actions: [
+//           IconButton(
+//             onPressed: () => _shareToWhatsApp(c),
+//             icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 20),
+//             tooltip: "Share via WhatsApp",
+//           ),
+//         ],
+//         bottom: TabBar(
+//           controller: _tabController,
+//           labelColor: AppColors.gold,
+//           unselectedLabelColor: AppColors.muted,
+//           indicatorColor: AppColors.gold,
+//           indicatorSize: TabBarIndicatorSize.tab,
+//           tabs: const [
+//             Tab(text: "Overview"),
+//             Tab(text: "Hearings"),
+//             Tab(text: "Documents"),
+//           ],
+//         ),
+//       ),
+//       body: isLoading
+//           ? const Center(
+//               child: CircularProgressIndicator(color: AppColors.gold),
+//             )
+//           : TabBarView(
+//               controller: _tabController,
+//               children: [
+//                 _buildOverviewTab(c),
+//                 _buildHearingsTab(c,role),
+//                 _buildDocumentsTab(c,role),
+//               ],
+//             ),
+//     );
+//   }
+//
+//   Widget _buildOverviewTab(Case c) {
+//     final List<List<String>> infoItems = [
+//       ["Parties", c.parties],
+//       ["Court", c.court.displayName],
+//       ["Bench", c.bench.displayName],
+//       ["Nature", c.nature.displayName],
+//     ];
+//
+//     if (c.taluka != null) {
+//       infoItems.add(["Taluka", c.taluka!.displayName]);
+//     }
+//     if (c.department != null) {
+//       infoItems.add(["Department", c.department!.displayName]);
+//     }
+//
+//     infoItems.addAll([
+//       ["Status", c.status.displayName],
+//       [
+//         "Next Hearing",
+//         c.nextHearing != null
+//             ? DateFormat('dd-MMM-yyyy').format(c.nextHearing!)
+//             : '—',
+//       ],
+//     ]);
+//
+//     return SingleChildScrollView(
+//       padding: const EdgeInsets.all(16),
+//       child: Column(
+//         children: [
+//           _buildInfoGrid(infoItems),
+//           const SizedBox(height: 16),
+//           Container(
+//             width: double.infinity,
+//             padding: const EdgeInsets.all(14),
+//             decoration: BoxDecoration(
+//               color: AppColors.cream,
+//               borderRadius: BorderRadius.circular(8),
+//               border: Border.all(color: AppColors.border),
+//             ),
+//             child: Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               children: [
+//                 const Text(
+//                   "NOTES / BACKGROUND",
+//                   style: TextStyle(
+//                     fontSize: 10,
+//                     fontWeight: FontWeight.bold,
+//                     color: AppColors.muted,
+//                   ),
+//                 ),
+//                 const SizedBox(height: 6),
+//                 Text(
+//                   c.notes,
+//                   style: const TextStyle(fontSize: 13, height: 1.5),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildInfoGrid(List<List<String>> items) {
+//     return GridView.builder(
+//       shrinkWrap: true,
+//       physics: const NeverScrollableScrollPhysics(),
+//       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//         crossAxisCount: 2,
+//         childAspectRatio: 2.5,
+//         crossAxisSpacing: 10,
+//         mainAxisSpacing: 10,
+//       ),
+//       itemCount: items.length,
+//       itemBuilder: (ctx, i) => Container(
+//         padding: const EdgeInsets.all(10),
+//         decoration: BoxDecoration(
+//           color: AppColors.cream,
+//           borderRadius: BorderRadius.circular(8),
+//           border: Border.all(color: AppColors.border),
+//         ),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               items[i][0].toUpperCase(),
+//               style: const TextStyle(
+//                 fontSize: 9,
+//                 fontWeight: FontWeight.bold,
+//                 color: AppColors.muted,
+//               ),
+//             ),
+//             const SizedBox(height: 2),
+//             Text(
+//               items[i][1],
+//               style: const TextStyle(
+//                 fontSize: 12,
+//                 fontWeight: FontWeight.bold,
+//                 color: AppColors.text,
+//               ),
+//               overflow: TextOverflow.ellipsis,
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget _buildHearingsTab(Case c, UserRole role) {
+//     final hearingsAsync = ref.watch(hearingsProvider(widget.caseId));
+//
+//
+//     return Column(
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.all(16),
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.end,
+//             children: [
+//               role.canCreateHearings ?
+//               ElevatedButton.icon(
+//                 onPressed: _showAddHearingScreen,
+//                 icon: const Icon(Icons.add),
+//                 label: const Text("Add Hearing"),
+//               ) : SizedBox(),
+//             ],
+//           ),
+//         ),
+//         Expanded(
+//           child: hearingsAsync.when(
+//             data: (hearings) => hearings.isEmpty
+//                 ? const Center(child: Text("No hearings recorded yet"))
+//                 : ListView.builder(
+//                     padding: const EdgeInsets.symmetric(horizontal: 16),
+//                     itemCount: hearings.length,
+//                     itemBuilder: (ctx, i) {
+//                       final h = hearings[i];
+//                       return Container(
+//                         margin: const EdgeInsets.only(bottom: 12),
+//                         padding: const EdgeInsets.all(14),
+//                         decoration: BoxDecoration(
+//                           color: AppColors.white,
+//                           borderRadius: BorderRadius.circular(10),
+//                           border: Border.all(color: AppColors.border),
+//                         ),
+//                         child: Column(
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Row(
+//                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                               children: [
+//                                 Text(
+//                                   DateFormat('dd-MMM-yyyy').format(h.date),
+//                                   style: const TextStyle(
+//                                     fontWeight: FontWeight.bold,
+//                                     color: AppColors.navy,
+//                                   ),
+//                                 ),
+//                                 Row(
+//                                   children: [
+//                                     if (h.nextDate != null)
+//                                       Text(
+//                                         "Next: ${DateFormat('dd-MMM-yyyy').format(h.nextDate!)}",
+//                                         style: const TextStyle(
+//                                           fontSize: 11,
+//                                           color: AppColors.muted,
+//                                         ),
+//                                       ),
+//                                     const SizedBox(width: 8),
+//                                     IconButton(
+//                                       onPressed: () =>
+//                                           _shareHearingToWhatsApp(c, h),
+//                                       icon: const FaIcon(
+//                                         FontAwesomeIcons.whatsapp,
+//                                         size: 16,
+//                                         color: AppColors.green,
+//                                       ),
+//                                       constraints: const BoxConstraints(),
+//                                       padding: EdgeInsets.zero,
+//                                       tooltip: "Share Hearing details",
+//                                     ),
+//                                   ],
+//                                 ),
+//                               ],
+//                             ),
+//                             const Divider(height: 20),
+//                             _buildHearingDetail(
+//                               "Submitted",
+//                               h.submitted,
+//                               AppColors.gold,
+//                             ),
+//                             _buildHearingDetail(
+//                               "Proceedings",
+//                               h.happened,
+//                               AppColors.navy,
+//                             ),
+//                             _buildHearingDetail(
+//                               "Court Order",
+//                               h.order,
+//                               const Color(0xFF2980B9),
+//                               isOrder: true,
+//                             ),
+//                           ],
+//                         ),
+//                       );
+//                     },
+//                   ),
+//             loading: () => const Center(
+//               child: CircularProgressIndicator(color: AppColors.gold),
+//             ),
+//             error: (err, stack) => Center(child: Text("Error: $err")),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+//
+//   Widget _buildHearingDetail(
+//     String label,
+//     String text,
+//     Color color, {
+//     bool isOrder = false,
+//   }) {
+//     if (text.isEmpty) return const SizedBox.shrink();
+//     return Padding(
+//       padding: const EdgeInsets.only(bottom: 8.0),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           Text(
+//             label.toUpperCase(),
+//             style: TextStyle(
+//               fontSize: 9,
+//               fontWeight: FontWeight.bold,
+//               color: color,
+//             ),
+//           ),
+//           const SizedBox(height: 2),
+//           Container(
+//             padding: isOrder ? const EdgeInsets.all(8) : null,
+//             decoration: isOrder
+//                 ? BoxDecoration(
+//                     color: const Color(0xFFEEF6FB),
+//                     border: const Border(
+//                       left: BorderSide(color: Color(0xFF2980B9), width: 3),
+//                     ),
+//                     borderRadius: BorderRadius.circular(4),
+//                   )
+//                 : null,
+//             child: Text(text, style: const TextStyle(fontSize: 12)),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Widget _buildDocumentsTab(Case c,UserRole role) {
+//     return Column(
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.all(16),
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.end,
+//             children: [
+//               role.canAddDocuments ?
+//               ElevatedButton.icon(
+//                 onPressed: () => _uploadDocument(c.id),
+//                 icon: const Icon(Icons.upload_file),
+//                 label: const Text("Upload Document"),
+//               ) : SizedBox(),
+//             ],
+//           ),
+//         ),
+//         Expanded(
+//           child: ListView.builder(
+//             padding: const EdgeInsets.symmetric(horizontal: 16),
+//             itemCount: c.documents.length,
+//             itemBuilder: (ctx, i) {
+//               final d = c.documents[i];
+//               return Card(
+//                 color: AppColors.white,
+//                 elevation: 0,
+//                 shape: RoundedRectangleBorder(
+//                   borderRadius: BorderRadius.circular(8),
+//                   side: const BorderSide(color: AppColors.border),
+//                 ),
+//                 child: ListTile(
+//                   leading: const Icon(Icons.description, color: AppColors.navy),
+//                   title: Text(
+//                     d.name,
+//                     style: const TextStyle(
+//                       fontWeight: FontWeight.bold,
+//                       fontSize: 13,
+//                     ),
+//                   ),
+//                   subtitle: Text(
+//                     "${d.type.displayName} • ${DateFormat('dd-MMM-yyyy').format(d.uploadedAt)}",
+//                     style: const TextStyle(fontSize: 11),
+//                   ),
+//                   trailing: Row(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       IconButton(
+//                         onPressed: () => _viewDocument(d),
+//                         icon: const Icon(
+//                           Icons.visibility,
+//                           size: 18,
+//                           color: AppColors.gold,
+//                         ),
+//                       ),
+//                       if(role.canAddDocuments)
+//                       PopupMenuButton<String>(
+//                         icon: const Icon(Icons.more_vert, size: 18),
+//                         onSelected: (value) {
+//                           if (c.id == null) {
+//                             return;
+//                           }
+//                           if (value == 'rename') {
+//                             _showRenameDialog(c.id!, d);
+//                           } else if (value == 'delete') {
+//                             _showDeleteConfirmDialog(c.id!, d);
+//                           }
+//                         },
+//                         itemBuilder: (context) => [
+//                           const PopupMenuItem(
+//                             value: 'rename',
+//                             child: Text('Rename'),
+//                           ),
+//                           const PopupMenuItem(
+//                             value: 'delete',
+//                             child: Text(
+//                               'Delete',
+//                               style: TextStyle(color: Colors.red),
+//                             ),
+//                           ),
+//                         ],
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               );
+//             },
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+//
+//   Future<void> _viewDocument(AppDocument doc) async {
+//     if (doc.url != null && doc.url!.startsWith('http')) {
+//       final uri = Uri.parse(doc.url!);
+//
+//       await launchUrl(uri, mode: LaunchMode.externalApplication);
+//     } else {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text("Document link not found or invalid.")),
+//       );
+//     }
+//   }
+//
+//   void _showRenameDialog(String caseId, AppDocument doc) {
+//     final controller = TextEditingController(text: doc.name);
+//     showDialog(
+//       context: context,
+//       builder: (ctx) => AlertDialog(
+//         title: const Text("Rename Document"),
+//         content: TextField(
+//           controller: controller,
+//           decoration: const InputDecoration(labelText: "New Name"),
+//         ),
+//         actions: [
+//           TextButton(
+//             onPressed: () => Navigator.pop(ctx),
+//             child: const Text("Cancel"),
+//           ),
+//           TextButton(
+//             onPressed: () {
+//               if (controller.text.isNotEmpty) {
+//                 ref
+//                     .read(caseProvider.notifier)
+//                     .renameDocument(caseId, doc.id, controller.text);
+//                 Navigator.pop(ctx);
+//               }
+//             },
+//             child: const Text("Rename"),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   void _showDeleteConfirmDialog(String caseId, AppDocument doc) {
+//     showDialog(
+//       context: context,
+//       builder: (ctx) => AlertDialog(
+//         title: const Text("Delete Document"),
+//         content: Text("Are you sure you want to delete '${doc.name}'?"),
+//         actions: [
+//           TextButton(
+//             onPressed: () => Navigator.pop(ctx),
+//             child: const Text("Cancel"),
+//           ),
+//           TextButton(
+//             onPressed: () {
+//               ref.read(caseProvider.notifier).deleteDocument(caseId, doc.id);
+//               Navigator.pop(ctx);
+//             },
+//             child: const Text("Delete", style: TextStyle(color: Colors.red)),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   void _showAddHearingScreen() {
+//     Navigator.push(
+//       context,
+//       MaterialPageRoute(
+//         builder: (ctx) => AddHearingScreen(caseId: widget.caseId),
+//       ),
+//     );
+//   }
+//
+//   Future<void> _uploadDocument(String? caseId) async {
+//     if (caseId == null) return;
+//
+//     // 1. Ask for Document Type
+//     final DocumentType? selectedType = await showModalBottomSheet<DocumentType>(
+//       context: context,
+//       shape: const RoundedRectangleBorder(
+//         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//       ),
+//       builder: (context) => Container(
+//         padding: const EdgeInsets.symmetric(vertical: 20),
+//         child: Column(
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             Text(
+//               "Select Document Type",
+//               style: GoogleFonts.playfairDisplay(
+//                 fontWeight: FontWeight.bold,
+//                 fontSize: 18,
+//                 color: AppColors.navy,
+//               ),
+//             ),
+//             const Divider(),
+//             Flexible(
+//               child: ListView(
+//                 shrinkWrap: true,
+//                 children: DocumentType.values
+//                     .map(
+//                       (type) => ListTile(
+//                         leading: const Icon(
+//                           Icons.description,
+//                           color: AppColors.gold,
+//                         ),
+//                         title: Text(type.displayName),
+//                         onTap: () => Navigator.pop(context, type),
+//                       ),
+//                     )
+//                     .toList(),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//
+//     if (selectedType == null) return;
+//
+//     ref.read(caseProvider.notifier).addDocument(caseId, selectedType);
+//
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(
+//           content: Text("${selectedType.displayName} saved successfully"),
+//           backgroundColor: AppColors.navy,
+//           behavior: SnackBarBehavior.floating,
+//         ),
+//       );
+//     }
+//   }
+//
+//   void _shareToWhatsApp(Case c) async {
+//     final nextDate = c.nextHearing != null
+//         ? DateFormat('dd-MMM-yyyy').format(c.nextHearing!)
+//         : 'Not yet scheduled';
+//
+//     String message =
+//         "Litigation Management - DC Office Sukkur\n\n"
+//         "Court: ${c.court.displayName}\n"
+//         "Case: ${c.caseNo} / ${c.year}\n"
+//         "Parties: ${c.title}\n"
+//         "Taluka: ${c.taluka?.displayName ?? 'N/A'}\n"
+//         "Dept: ${c.department?.displayName ?? 'N/A'}\n"
+//         "Next Hearing: $nextDate\n\n"
+//         "Notes: ${c.notes}";
+//
+//     await _launchWhatsApp(message);
+//   }
+//
+//   void _shareHearingToWhatsApp(Case c, Hearing h) async {
+//     String message =
+//         "Hearing Update - DC Office Sukkur\n\n"
+//         "Court: ${c.court.displayName}\n"
+//         "Case: ${c.caseNo} / ${c.year}\n"
+//         "Hearing Date: ${DateFormat('dd-MMM-yyyy').format(h.date)}\n\n"
+//         "Proceedings:\n${h.happened.isEmpty ? 'N/A' : h.happened}\n\n"
+//         "Court Order:\n${h.order.isEmpty ? 'N/A' : h.order}\n\n"
+//         "Next Date: ${h.nextDate != null ? DateFormat('dd-MMM-yyyy').format(h.nextDate!) : 'Not fixed'}";
+//
+//     await _launchWhatsApp(message);
+//   }
+//
+//   Future<void> _launchWhatsApp(String message) async {
+//     final url = "whatsapp://send?text=${Uri.encodeComponent(message)}";
+//
+//     if (await canLaunchUrl(Uri.parse(url))) {
+//       await launchUrl(Uri.parse(url));
+//     } else {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text("Could not launch WhatsApp")),
+//         );
+//       }
+//     }
+//   }
+// }
